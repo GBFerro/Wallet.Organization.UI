@@ -1,10 +1,31 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
+    "baseUrl": "./",
     "paths": {
-      "@/*": [
-        "./*"
+      "@components/*": [
+        "app/components/*"
+      ],
+      "@constants/*": [
+        "app/constants/*"
+      ],
+      "@hooks/*": [
+        "app/hooks/*"
+      ],
+      "@services/*": [
+        "app/services/*"
+      ],
+      "@contexts/*": [
+        "app/contexts/*"
+      ],
+      "@utils/*": [
+        "app/utils/*"
+      ],
+      "@feature/*": [
+        "app/feature/*"
+      ],
+      "@navigation/*": [
+        "app/navigation/*"
       ]
     }
   },
@@ -12,6 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }
