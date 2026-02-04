@@ -5,3 +5,4 @@ export { SearchBar } from "./SearchBar";
 export { Spacer } from "./Spacer";
 export { ThemedText } from "./ThemedText";
 export { ThemedView } from "./ThemedView";
+export { Toast } from "./Toast";
