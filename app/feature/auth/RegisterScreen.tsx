@@ -1,19 +1,20 @@
 import { ThemedText } from "@components/atoms/ThemedText";
 import { ThemedView } from "@components/atoms/ThemedView";
+import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useAuth } from "@contexts/AuthContext";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
+    ActivityIndicator,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -36,17 +37,17 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 
   async function handleRegister() {
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      setError("Preencha todos os campos");
+      setError(TEXT.auth.errorFillFields);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("As senhas nao conferem");
+      setError(TEXT.auth.errorPasswordMismatch);
       return;
     }
 
     if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres");
+      setError(TEXT.auth.errorPasswordLength);
       return;
     }
 
@@ -56,7 +57,7 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
     const result = await register(name, email, password);
 
     if (!result.success) {
-      setError(result.message || "Erro ao criar conta");
+      setError(result.message || TEXT.auth.errorRegister);
     }
 
     setIsLoading(false);
@@ -83,10 +84,10 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
               <Feather name="trending-up" size={40} color="#FFFFFF" />
             </View>
             <ThemedText type="title" style={styles.title}>
-              Criar Conta
+              {TEXT.auth.registerTitle}
             </ThemedText>
             <ThemedText type="body" style={{ color: theme.textSecondary }}>
-              Preencha os dados para comecar
+              {TEXT.auth.registerSubtitle}
             </ThemedText>
           </View>
 

@@ -1,3 +1,4 @@
+import { TEXT } from "@constants/text";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -83,7 +84,7 @@ export default function MainTabNavigator() {
         name="ForecastTab"
         component={ForecastStackNavigator}
         options={{
-          title: "Previsao",
+          title: TEXT.nav.forecast,
           tabBarIcon: ForecastTabIcon,
         }}
       />
@@ -91,7 +92,7 @@ export default function MainTabNavigator() {
         name="TransactionsTab"
         component={TransactionsStackNavigator}
         options={{
-          title: "Transacoes",
+          title: TEXT.nav.transactions,
           tabBarIcon: TransactionsTabIcon,
         }}
       />
@@ -99,7 +100,7 @@ export default function MainTabNavigator() {
         name="SettingsTab"
         component={SettingsStackNavigator}
         options={{
-          title: "Ajustes",
+          title: TEXT.nav.settings,
           tabBarIcon: SettingsTabIcon,
         }}
       />

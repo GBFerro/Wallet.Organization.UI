@@ -1,7 +1,97 @@
-# Copilot Instructions - FinForecast Wallet UI
+# Copilot Instructions - Monexo Wallet UI
 
 ## Project Overview
-React Native/Expo financial forecast application using TypeScript, with file-based routing via Expo Router. Backend communicates with ngrok-tunneled API for transaction management and financial projections.
+React Native/Expo financial forecast application using TypeScript, with file-based routing via Expo Router. **Monexo** is a calm, premium, minimal, data-first finance application. Backend communicates with ngrok-tunneled API for transaction management and financial projections.
+
+## Design System - Monexo
+
+### Brand Identity
+- **Name:** Monexo
+- **Philosophy:** Calm, Premium, Minimal, Data-First
+- **Style:** Minimal + glassmorphism + generous whitespace
+- **Brand signal:** *Data-first* finance with clean, premium aesthetics
+
+### Color Palette
+Primary color is **Emerald Refined**, supported by Soft Mint surfaces and Deep Navy accents.
+
+| Token | Hex | HSL | Use |
+|---|---|---|---|
+| **Emerald Refined** | `#1A9B7F` | `165 65% 38%` | Main brand color, call-to-actions, positive trends |
+| **Soft Mint** | `#E8F3F0` | `165 30% 94%` | Backgrounds for pills, secondary elements |
+| **Deep Navy** | `#1F3A5F` | `215 45% 20%` | Key text, high contrast elements |
+| **Off-White** | `#F9FAFB` | `210 20% 98%` | Main app background |
+| **Charcoal** | `#3A4A5C` | `215 25% 27%` | Primary text color (softer than black) |
+| **Pale Gray** | `#F3F4F6` | `210 20% 96%` | Subtle backgrounds, borders |
+| **Soft Red** | `#EF5350` | `0 84% 60%` | Error states, negative trends, destructive actions |
+
+**Light Mode:**
+- backgroundRoot: `#F9FAFB` (Off-White)
+- backgroundDefault: `#FFFFFF` (Pure white)
+- backgroundSecondary: `#E8F3F0` (Soft Mint)
+- primary: `#1A9B7F` (Emerald Refined)
+- text: `#3A4A5C` (Charcoal)
+
+**Dark Mode:**
+- backgroundRoot: `#0F1419` (Dark background)
+- backgroundDefault: `#1A1F26` (Dark surface)
+- backgroundSecondary: `#1A4A3F` (Dark Mint)
+- primary: `#22C39F` (Lighter Emerald)
+- text: `#E5E7EB` (Light foreground)
+
+### Chart Colors
+Five-color palette for data visualization:
+1. **Primary Emerald** `#1A9B7F` (165 65% 38%)
+2. **Soft Blue** `#5A7BA6` (215 45% 40%)
+3. **Warm Gold** `#F4C430` (45 90% 60%)
+4. **Soft Coral** `#E57373` (12 76% 61%)
+5. **Muted Purple** `#9575CD` (260 40% 60%)
+
+### Typography
+- **Headings:** `Manrope` (modern, geometric)
+  - Use for product name, hero headings, section titles
+  - Typography: `h1` (48px), `h2` (32px), `h3` (24px)
+
+- **Body / UI:** `Inter` (highly readable, clean)
+  - Use for navigation, body copy, labels, buttons
+  - Typography: `body` (16px), `bodyLarge` (18px), `caption` (13px)
+
+- **Mono / Data:** `JetBrains Mono`
+  - Use for currency values, code blocks, data tables
+  - Typography: `currency` (16px)
+
+**Type Scale:**
+- `Typography.h1` - 48px (Manrope, display)
+- `Typography.h2` - 32px (Manrope, section titles)
+- `Typography.h3` - 24px (Manrope, headings)
+- `Typography.body` - 16px (Inter)
+- `Typography.bodyLarge` - 18px (Inter)
+- `Typography.caption` - 13px (Inter)
+- `Typography.currency` - 16px (JetBrains Mono)
+
+### Layout & Spacing
+- **Whitespace-forward:** Prioritize breathing room over dense panels
+- **Rounded geometry:** Large radii for key surfaces (`BorderRadius.lg` = 16px / 1rem)
+- **Cards:** Subtle border + soft shadow; avoid heavy outlines
+- Use `Spacing` constants: `xs/sm/md/lg/xl/2xl/3xl`
+
+### Depth & Effects
+- **Glassmorphism:** Frosted glass effects with backdrop blur for premium feel
+  - `glass` - `bg-white/80 backdrop-blur-md border-white/20`
+  - `glass-card` - `bg-white/60 backdrop-blur-lg border-white/40 shadow-soft`
+- **Soft shadows:** Subtle elevation with minimal opacity (`Effects.softShadow`, `Effects.cardShadow`)
+- **Primary glow:** Emerald glow ring for active/focus states (`Effects.primaryGlow`)
+- **Focus rings:** Emerald glow ring for accessibility (`Effects.focusRing`)
+
+### Iconography
+- Use consistent stroke weights
+- Prefer simple shapes that read quickly
+- Emerald-tinted icon containers reinforce brand without overwhelming content
+
+### Interaction Principles
+- **Soft but precise:** Clear hover/active states, smooth motion, consistent focus-visible ring
+- Use `react-native-reanimated` with standard spring config
+- Scale animations: 1 → 0.98 on press
+- Use `FieldMotion` component for declarative enter/exit animations
 
 ## Architecture & Critical Patterns
 
@@ -85,14 +175,21 @@ import { AuthContext } from "@contexts/AuthContext";
 - No non-null assertions (`!`) - use conditional rendering instead
 
 ### 4. Theme System
-Centralized in `@constants/theme` with light/dark modes:
+Centralized in `@constants/theme` with **Monexo design system**:
 - Access via `useTheme()` hook: `const { theme, isDark } = useTheme()`
-- Theme provides: text, backgroundRoot/Default/Secondary/Tertiary, primary, income, expense, border
-- Typography constants: `Typography.h1/.h2/.h3/.h4/.body/.small`
-- Spacing: `Spacing.xs/.sm/.md/.lg/.xl/.xxl/buttonHeight`
-- Border radius: `BorderRadius.xs/.sm/.md/.lg/.xl/.2xl/.full`
+- **Colors:** Primary Emerald (`#1A9B7F`), Soft Mint accent (`#E8F3F0`), Charcoal text (`#3A4A5C`), Off-White background (`#F9FAFB`)
+- **Typography:** Manrope (display), Inter (body/UI), JetBrains Mono (data)
+  - `Typography.h1/.h2/.h3` - Manrope headings (48/32/24px)
+  - `Typography.body/.bodyLarge/.caption` - Inter (16/18/13px)
+  - `Typography.currency` - JetBrains Mono (16px)
+- **Spacing:** `Spacing.xs/.sm/.md/.lg/.xl/.2xl/.3xl/buttonHeight`
+- **Border radius:** `BorderRadius.xs/.sm/.md/.lg` (base lg = 16px/1rem)
+- **Effects:** `Effects.softShadow` (soft elevation), `Effects.primaryGlow` (Emerald glow), `Effects.focusRing` (Emerald focus ring), `Effects.glass/glassCard` (glassmorphism)
+- **Chart colors:** `theme.chart1/.chart2/.chart3/.chart4/.chart5` - Emerald, Soft Blue, Warm Gold, Soft Coral, Muted Purple
 
-**Always use theme constants, never hardcoded colors/sizes**
+**Theme provides:** text, textSecondary, backgroundRoot/Default/Secondary/Tertiary, primary, primaryLight, income, expense, border, cardHeader, chart1-5
+
+**Always use theme constants, never hardcoded colors/sizes. Prioritize whitespace and generous padding for Monexo's calm aesthetic.**
 
 ### 5. API Integration Pattern
 API service (`@services/api`) uses AsyncStorage for auth tokens:
@@ -526,6 +623,7 @@ Always include accessibility props for interactive elements:
 - Array indices as keys
 - Nested ternary operators in JSX
 - Components with more than 200-300 lines
+- Comments, use only when extremely necessary
 
 ## Key Files to Reference
 - Component patterns: `app/components/BEST_PRACTICES.md`

@@ -1,18 +1,18 @@
 import { ThemedText, ThemedView } from "@components/atoms";
+import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useAuth } from "@contexts/AuthContext";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
+  ActivityIndicator, Image, KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
-  View,
+  View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,7 +34,7 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 
   async function handleLogin() {
     if (!email.trim() || !password.trim()) {
-      setError("Preencha todos os campos");
+      setError(TEXT.auth.errorFillFields);
       return;
     }
 
@@ -44,7 +44,7 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
     const result = await login(email, password);
 
     if (!result.success) {
-      setError(result.message || "Erro ao fazer login");
+      setError(result.message || TEXT.auth.errorLogin);
     }
 
     setIsLoading(false);
@@ -67,14 +67,16 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <View style={[styles.logoContainer, { backgroundColor: theme.primary }]}>
-              <Feather name="trending-up" size={40} color="#FFFFFF" />
-            </View>
+              <Image
+                source={require("@assets/images/Monexo-icon.png")}
+                style={[styles.logoContainer]}
+                accessibilityLabel="Logo Monexo"
+              />
             <ThemedText type="title" style={styles.title}>
-              FinForecast
+              {TEXT.appName}
             </ThemedText>
             <ThemedText type="body" style={{ color: theme.textSecondary }}>
-              Faca login para continuar
+              {TEXT.auth.loginTitle}
             </ThemedText>
           </View>
 
@@ -90,13 +92,13 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 
             <View style={styles.inputGroup}>
               <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-                Email
+                {TEXT.auth.emailLabel}
               </ThemedText>
               <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault }]}>
                 <Feather name="mail" size={20} color={theme.textSecondary} />
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
-                  placeholder="seu@email.com"
+                  placeholder={TEXT.auth.emailPlaceholder}
                   placeholderTextColor={theme.textSecondary}
                   value={email}
                   onChangeText={setEmail}
@@ -109,13 +111,13 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 
             <View style={styles.inputGroup}>
               <ThemedText type="caption" style={{ color: theme.textSecondary }}>
-                Senha
+                {TEXT.auth.passwordLabel}
               </ThemedText>
               <View style={[styles.inputContainer, { backgroundColor: theme.backgroundDefault }]}>
                 <Feather name="lock" size={20} color={theme.textSecondary} />
                 <TextInput
                   style={[styles.input, { color: theme.text }]}
-                  placeholder="Sua senha"
+                  placeholder={TEXT.auth.passwordPlaceholder}
                   placeholderTextColor={theme.textSecondary}
                   value={password}
                   onChangeText={setPassword}
@@ -146,7 +148,7 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <ThemedText type="body" style={{ color: "#FFFFFF", fontWeight: "600" }}>
-                  Entrar
+                  {TEXT.auth.loginButton}
                 </ThemedText>
               )}
             </Pressable>
@@ -154,11 +156,11 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 
           <View style={styles.footer}>
             <ThemedText type="body" style={{ color: theme.textSecondary }}>
-              Nao tem uma conta?
+              {TEXT.auth.noAccount}
             </ThemedText>
             <Pressable onPress={onRegister}>
               <ThemedText type="body" style={{ color: theme.primary, fontWeight: "600" }}>
-                {" "}Criar conta
+                {" "}{TEXT.auth.signUp}
               </ThemedText>
             </Pressable>
           </View>
