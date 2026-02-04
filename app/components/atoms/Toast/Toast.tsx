@@ -1,5 +1,5 @@
 import { ThemedText } from "@components/atoms/ThemedText";
-import { BorderRadius, Effects, Spacing } from "@constants/theme";
+import { Effects, Spacing } from "@constants/theme";
 import type { Toast as ToastData } from "@contexts/ToastContext";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
@@ -154,11 +154,9 @@ export function Toast({
 
 const styles = StyleSheet.create({
 	container: {
-		borderRadius: BorderRadius.md,
 		borderWidth: 1,
 		paddingVertical: Spacing.md,
 		paddingHorizontal: Spacing.lg,
-		marginHorizontal: Spacing.lg,
 	},
 	content: {
 		flexDirection: "row",
