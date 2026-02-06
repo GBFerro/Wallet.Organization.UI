@@ -7,38 +7,38 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet } from "react-native";
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [showRegister, setShowRegister] = useState(false);
+	const { isAuthenticated, isLoading } = useAuth();
+	const [showRegister, setShowRegister] = useState(false);
 
-  if (isLoading) {
-    return (
-      <ThemedView style={styles.container}>
-        <ActivityIndicator size="large" />
-        <ThemedText type="body" style={styles.subtitle}>
-          Carregando...
-        </ThemedText>
-      </ThemedView>
-    );
-  }
+	if (isLoading) {
+		return (
+			<ThemedView style={styles.container}>
+				<ActivityIndicator size="large" />
+				<ThemedText type="body" style={styles.subtitle}>
+					Carregando...
+				</ThemedText>
+			</ThemedView>
+		);
+	}
 
-  if (!isAuthenticated) {
-    if (showRegister) {
-      return <RegisterScreen onLogin={() => setShowRegister(false)} />;
-    }
-    return <LoginScreen onRegister={() => setShowRegister(true)} />;
-  }
+	if (!isAuthenticated) {
+		if (showRegister) {
+			return <RegisterScreen onLogin={() => setShowRegister(false)} />;
+		}
+		return <LoginScreen onRegister={() => setShowRegister(true)} />;
+	}
 
-  return <MainTabNavigator />;
+	return <MainTabNavigator />;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  subtitle: {
-    marginTop: 8,
-    opacity: 0.7,
-  },
+	container: {
+		flex: 1,
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	subtitle: {
+		marginTop: 8,
+		opacity: 0.7,
+	},
 });

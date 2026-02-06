@@ -3,8 +3,15 @@ import { ErrorBoundary } from "@components/layout";
 import { AuthProvider } from "@contexts/AuthContext";
 import { ThemeProvider } from "@contexts/ThemeContext";
 import { ToastProvider } from "@contexts/ToastContext";
+import { useApiToastIntegration } from "@hooks/useApiToastIntegration";
 import { Stack } from "expo-router";
 import "./global.css";
+
+function AppContent() {
+	useApiToastIntegration();
+
+	return <Stack screenOptions={{ headerShown: false }} />;
+}
 
 export default function RootLayout() {
 	return (
@@ -12,7 +19,7 @@ export default function RootLayout() {
 			<ThemeProvider>
 				<ToastProvider>
 					<AuthProvider>
-						<Stack screenOptions={{ headerShown: false }} />
+						<AppContent />
 					</AuthProvider>
 					<ToastContainer />
 				</ToastProvider>
