@@ -6,32 +6,32 @@ import React from "react";
 import { getCommonScreenOptions } from "./screenOptions";
 
 export type ForecastStackParamList = {
-  Forecast: undefined;
+	Forecast: undefined;
 };
 
 const Stack = createNativeStackNavigator<ForecastStackParamList>();
 
 function ForecastHeaderTitle() {
-  return <HeaderTitle title="FinForecast" />;
+	return <HeaderTitle title="FinForecast" />;
 }
 
 export default function ForecastStackNavigator() {
-  const { theme, isDark } = useTheme();
+	const { theme, isDark } = useTheme();
 
-  return (
-    <Stack.Navigator
-      id="ForecastScreen"
-      screenOptions={{
-        ...getCommonScreenOptions({ theme, isDark }),
-      }}
-    >
-      <Stack.Screen
-        name="Forecast"
-        component={ForecastScreen}
-        options={{
-          headerTitle: ForecastHeaderTitle,
-        }}
-      />
-    </Stack.Navigator>
-  );
+	return (
+		<Stack.Navigator
+			id="ForecastScreen"
+			screenOptions={{
+				...getCommonScreenOptions({ theme, isDark }),
+			}}
+		>
+			<Stack.Screen
+				name="Forecast"
+				component={ForecastScreen}
+				options={{
+					headerTitle: ForecastHeaderTitle,
+				}}
+			/>
+		</Stack.Navigator>
+	);
 }
