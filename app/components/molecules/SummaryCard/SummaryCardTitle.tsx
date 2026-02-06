@@ -5,26 +5,26 @@ import type { TextProps } from "react-native";
 import { useSummaryCardContext } from "./SummaryCardContext";
 
 export interface SummaryCardTitleProps extends TextProps {
-  children: React.ReactNode;
-  className?: string;
+	children: React.ReactNode;
+	className?: string;
 }
 
 export function SummaryCardTitle({
-  children,
-  className,
-  style,
-  ...props
+	children,
+	className,
+	style,
+	...props
 }: Readonly<SummaryCardTitleProps>) {
-  const { theme } = useSummaryCardContext();
+	const { theme } = useSummaryCardContext();
 
-  return (
-    <ThemedText
-      {...props}
-      type="caption"
-      className={cn(className)}
-      style={[{ color: theme.textSecondary }, style]}
-    >
-      {children}
-    </ThemedText>
-  );
+	return (
+		<ThemedText
+			{...props}
+			type="caption"
+			className={cn(className)}
+			style={[{ color: theme.textSecondary }, style]}
+		>
+			{children}
+		</ThemedText>
+	);
 }

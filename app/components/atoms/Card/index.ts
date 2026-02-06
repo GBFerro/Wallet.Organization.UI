@@ -6,11 +6,11 @@ import { CardHeader } from "./CardHeader";
 import { CardTitle } from "./CardTitle";
 
 export const Card = Object.assign(CardRoot, {
-  Header: CardHeader,
-  Body: CardBody,
-  Footer: CardFooter,
-  Title: CardTitle,
-  Description: CardDescription,
+	Header: CardHeader,
+	Body: CardBody,
+	Footer: CardFooter,
+	Title: CardTitle,
+	Description: CardDescription,
 });
 
 export type { CardProps } from "./Card";

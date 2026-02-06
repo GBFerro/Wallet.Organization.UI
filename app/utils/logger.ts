@@ -6,33 +6,33 @@
 const isDevelopment = __DEV__;
 
 export const logger = {
-  log: (...args: unknown[]) => {
-    if (isDevelopment) {
-      console.log(...args);
-    }
-  },
+	log: (...args: unknown[]) => {
+		if (isDevelopment) {
+			console.log(...args);
+		}
+	},
 
-  error: (...args: unknown[]) => {
-    if (isDevelopment) {
-      console.error(...args);
-    }
-  },
+	error: (...args: unknown[]) => {
+		if (isDevelopment) {
+			console.error(...args);
+		}
+	},
 
-  warn: (...args: unknown[]) => {
-    if (isDevelopment) {
-      console.warn(...args);
-    }
-  },
+	warn: (...args: unknown[]) => {
+		if (isDevelopment) {
+			console.warn(...args);
+		}
+	},
 
-  info: (...args: unknown[]) => {
-    if (isDevelopment) {
-      console.info(...args);
-    }
-  },
+	info: (...args: unknown[]) => {
+		if (isDevelopment) {
+			console.info(...args);
+		}
+	},
 
-  debug: (...args: unknown[]) => {
-    if (isDevelopment) {
-      console.debug(...args);
-    }
-  },
+	debug: (...args: unknown[]) => {
+		if (isDevelopment) {
+			console.debug(...args);
+		}
+	},
 };

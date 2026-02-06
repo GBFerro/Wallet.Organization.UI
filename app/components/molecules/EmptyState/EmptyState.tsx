@@ -9,86 +9,83 @@ import type { ViewProps } from "react-native";
 import { StyleSheet, View } from "react-native";
 
 export interface EmptyStateProps extends ViewProps {
-  icon?: keyof typeof Feather.glyphMap;
-  iconSize?: number;
-  title?: string;
-  message: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  variant?: "empty" | "error";
-  className?: string;
+	icon?: keyof typeof Feather.glyphMap;
+	iconSize?: number;
+	title?: string;
+	message: string;
+	actionLabel?: string;
+	onAction?: () => void;
+	variant?: "empty" | "error";
+	className?: string;
 }
 
 export function EmptyState({
-  icon,
-  iconSize = 48,
-  title,
-  message,
-  actionLabel,
-  onAction,
-  variant = "empty",
-  className,
-  style,
-  ...props
+	icon,
+	iconSize = 48,
+	title,
+	message,
+	actionLabel,
+	onAction,
+	variant = "empty",
+	className,
+	style,
+	...props
 }: Readonly<EmptyStateProps>) {
-  const { theme } = useTheme();
+	const { theme } = useTheme();
 
-  const defaultIcon = variant === "error" ? "alert-circle" : "inbox";
-  const iconColor = variant === "error" ? theme.expense : theme.textSecondary;
+	const defaultIcon = variant === "error" ? "alert-circle" : "inbox";
+	const iconColor = variant === "error" ? theme.expense : theme.textSecondary;
 
-  return (
-    <View
-      {...props}
-      className={cn(className)}
-      style={[styles.container, style]}
-    >
-      <Feather name={icon || defaultIcon} size={iconSize} color={iconColor} />
+	return (
+		<View
+			{...props}
+			className={cn(className)}
+			style={[styles.container, style]}
+		>
+			<Feather name={icon || defaultIcon} size={iconSize} color={iconColor} />
 
-      {title && (
-        <ThemedText type="label" style={{ textAlign: "center" }}>
-          {title}
-        </ThemedText>
-      )}
+			{title && (
+				<ThemedText type="label" style={{ textAlign: "center" }}>
+					{title}
+				</ThemedText>
+			)}
 
-      <ThemedText
-        type="body"
-        style={[styles.message, { color: theme.textSecondary }]}
-      >
-        {message}
-      </ThemedText>
+			<ThemedText
+				type="body"
+				style={[styles.message, { color: theme.textSecondary }]}
+			>
+				{message}
+			</ThemedText>
 
-      {actionLabel && onAction && (
-        <Button
-          onPress={onAction}
-          className="mt-4"
-          style={[
-            styles.button,
-            { backgroundColor: theme.primary },
-          ]}
-        >
-          <ThemedText type="body" style={{ color: theme.buttonText }}>
-            {actionLabel}
-          </ThemedText>
-        </Button>
-      )}
-    </View>
-  );
+			{actionLabel && onAction && (
+				<Button
+					onPress={onAction}
+					className="mt-4"
+					style={[styles.button, { backgroundColor: theme.primary }]}
+				>
+					<ThemedText type="body" style={{ color: theme.buttonText }}>
+						{actionLabel}
+					</ThemedText>
+				</Button>
+			)}
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing["5xl"],
-    gap: Spacing.lg,
-  },
-  message: {
-    textAlign: "center",
-  },
-  button: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
-  },
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+		paddingVertical: Spacing["5xl"],
+		gap: Spacing.lg,
+	},
+	message: {
+		textAlign: "center",
+	},
+	button: {
+		paddingHorizontal: Spacing.xl,
+		paddingVertical: Spacing.md,
+		borderRadius: BorderRadius.sm,
+	},
 });

@@ -7,43 +7,43 @@ import type { ViewProps } from "react-native";
 import { ActivityIndicator, StyleSheet } from "react-native";
 
 export interface LoadingStateProps extends ViewProps {
-  message?: string;
-  size?: "small" | "large";
-  className?: string;
+	message?: string;
+	size?: "small" | "large";
+	className?: string;
 }
 
 export function LoadingState({
-  message = "Carregando...",
-  size = "large",
-  className,
-  style,
-  ...props
+	message = "Carregando...",
+	size = "large",
+	className,
+	style,
+	...props
 }: Readonly<LoadingStateProps>) {
-  const { theme } = useTheme();
+	const { theme } = useTheme();
 
-  return (
-    <ThemedView
-      {...props}
-      className={cn(className)}
-      style={[styles.container, style]}
-    >
-      <ActivityIndicator size={size} color={theme.primary} />
-      {message && (
-        <ThemedText
-          type="body"
-          style={{ marginTop: Spacing.lg, color: theme.textSecondary }}
-        >
-          {message}
-        </ThemedText>
-      )}
-    </ThemedView>
-  );
+	return (
+		<ThemedView
+			{...props}
+			className={cn(className)}
+			style={[styles.container, style]}
+		>
+			<ActivityIndicator size={size} color={theme.primary} />
+			{message && (
+				<ThemedText
+					type="body"
+					style={{ marginTop: Spacing.lg, color: theme.textSecondary }}
+				>
+					{message}
+				</ThemedText>
+			)}
+		</ThemedView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 });

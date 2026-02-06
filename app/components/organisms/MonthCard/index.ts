@@ -1,6 +1,16 @@
-// Re-exports from the full MonthCard implementation
-// eslint-disable-next-line @typescript-eslint/no-todo
-// TODO: Split this into individual component files for better organization
+export { MonthCardCalendar } from "./MonthCardCalendar";
+export * from "./MonthCardContext";
+export { MonthCardDayDetail } from "./MonthCardDayDetail";
+export { MonthCardHeader } from "./MonthCardHeader";
+export { MonthCardRoot } from "./MonthCardRoot";
 
-export { MonthCard } from "./MonthCard.full";
-export type { MonthData } from "./MonthCard.full";
+import { MonthCardCalendar } from "./MonthCardCalendar";
+import { MonthCardDayDetail } from "./MonthCardDayDetail";
+import { MonthCardHeader } from "./MonthCardHeader";
+import { MonthCardRoot } from "./MonthCardRoot";
+
+export const MonthCard = Object.assign(MonthCardRoot, {
+	Header: MonthCardHeader,
+	Calendar: MonthCardCalendar,
+	DayDetail: MonthCardDayDetail,
+});

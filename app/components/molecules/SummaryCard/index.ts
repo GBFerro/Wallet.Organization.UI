@@ -4,9 +4,9 @@ import { SummaryCardTitle } from "./SummaryCardTitle";
 import { SummaryCardValue } from "./SummaryCardValue";
 
 export const SummaryCard = Object.assign(SummaryCardRoot, {
-  Icon: SummaryCardIcon,
-  Title: SummaryCardTitle,
-  Value: SummaryCardValue,
+	Icon: SummaryCardIcon,
+	Title: SummaryCardTitle,
+	Value: SummaryCardValue,
 });
 
 export type { SummaryCardProps } from "./SummaryCard";
