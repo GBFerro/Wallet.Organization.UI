@@ -7,6 +7,7 @@ import {
 	PeriodEnum,
 	Projection,
 } from "@constants/api";
+import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
@@ -194,7 +195,7 @@ export function ForecastScreen() {
 						onPress={onRefresh}
 					>
 						<ThemedText type="body" style={{ color: "#FFFFFF" }}>
-							Tentar novamente
+							{TEXT.errors.tryAgain}
 						</ThemedText>
 					</Pressable>
 				</View>
@@ -218,7 +219,7 @@ export function ForecastScreen() {
 							marginTop: Spacing.lg,
 						}}
 					>
-						Nenhuma projecao disponivel para este periodo.
+						{TEXT.forecast.empty}
 					</ThemedText>
 				</View>
 			);
@@ -227,7 +228,10 @@ export function ForecastScreen() {
 		return monthsData.map((monthData) => (
 			<MonthCard
 				key={`${monthData.year}-${monthData.monthIndex}`}
-				monthData={monthData}
+				year={monthData.year}
+				monthIndex={monthData.monthIndex}
+				monthName={monthData.month}
+				projections={monthData.projections}
 			>
 				<MonthCard.Header />
 				<MonthCard.Calendar />
@@ -248,7 +252,7 @@ export function ForecastScreen() {
 					type="body"
 					style={{ marginTop: Spacing.lg, color: theme.textSecondary }}
 				>
-					Carregando previsao...
+					{TEXT.common.loading}
 				</ThemedText>
 			</ThemedView>
 		);
@@ -275,7 +279,7 @@ export function ForecastScreen() {
 				showsVerticalScrollIndicator={false}
 			>
 				<View style={styles.periodRow}>
-					<ThemedText type="label">Periodo</ThemedText>
+					<ThemedText type="label"> {TEXT.forecast.period}</ThemedText>
 					<Pressable
 						style={({ pressed }) => [
 							styles.periodButton,
@@ -299,7 +303,7 @@ export function ForecastScreen() {
 				>
 					<SummaryCard>
 						<SummaryCard.Icon name="trending-up" color={theme.income} />
-						<SummaryCard.Title>Receita Total</SummaryCard.Title>
+						<SummaryCard.Title> {TEXT.forecast.totalIncome}</SummaryCard.Title>
 						<SummaryCard.Value>
 							{formatCurrency(totalSummary.totalIncome)}
 						</SummaryCard.Value>
@@ -307,7 +311,7 @@ export function ForecastScreen() {
 
 					<SummaryCard>
 						<SummaryCard.Icon name="trending-down" color={theme.expense} />
-						<SummaryCard.Title>Despesa Total</SummaryCard.Title>
+						<SummaryCard.Title> {TEXT.forecast.totalExpense}</SummaryCard.Title>
 						<SummaryCard.Value>
 							{formatCurrency(totalSummary.totalExpenses)}
 						</SummaryCard.Value>
@@ -320,7 +324,7 @@ export function ForecastScreen() {
 								totalSummary.netBalance >= 0 ? theme.income : theme.expense
 							}
 						/>
-						<SummaryCard.Title>Saldo Liquido</SummaryCard.Title>
+						<SummaryCard.Title> {TEXT.forecast.netBalance}</SummaryCard.Title>
 						<SummaryCard.Value>
 							{formatCurrency(totalSummary.netBalance)}
 						</SummaryCard.Value>
@@ -328,7 +332,9 @@ export function ForecastScreen() {
 
 					<SummaryCard>
 						<SummaryCard.Icon name="dollar-sign" color={theme.primary} />
-						<SummaryCard.Title>Saldo Atual</SummaryCard.Title>
+						<SummaryCard.Title>
+							{TEXT.forecast.currentBalance}
+						</SummaryCard.Title>
 						<SummaryCard.Value>
 							{formatCurrency(totalSummary.currentBalance)}
 						</SummaryCard.Value>
@@ -336,7 +342,7 @@ export function ForecastScreen() {
 				</ScrollView>
 
 				<ThemedText type="label" style={styles.sectionTitle}>
-					Projecao Mensal
+					{TEXT.forecast.header}
 				</ThemedText>
 
 				{renderContent()}
@@ -356,7 +362,7 @@ export function ForecastScreen() {
 						]}
 					>
 						<View style={styles.modalHeader}>
-							<ThemedText type="label">Selecionar Periodo</ThemedText>
+							<ThemedText type="label">{TEXT.forecast.selectPeriod}</ThemedText>
 							<Pressable
 								onPress={() => setIsPeriodModalVisible(false)}
 								style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
@@ -450,7 +456,7 @@ const styles = StyleSheet.create({
 	},
 	modalOverlay: {
 		flex: 1,
-		backgroundColor: "rgba(0, 0, 0, 0.5)",
+		backgroundColor: "rgba(0, 0, 0, 0)",
 		justifyContent: "flex-end",
 	},
 	modalContent: {
