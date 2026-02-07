@@ -1,7 +1,10 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(
+	value: number,
+	currency: string = "BRL",
+): string {
 	return new Intl.NumberFormat("pt-BR", {
 		style: "currency",
-		currency: "BRL",
+		currency,
 	}).format(value);
 }
 
@@ -33,5 +36,15 @@ export function formatDayMonth(dateString: string): string {
 export function getDayOfWeek(dateString: string): string {
 	const date = new Date(dateString);
 	const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-	return days[date.getDay()];
+	return days[date.getUTCDay()];
+}
+
+export function getSplitedDate(): { day: number; month: number; year: number } {
+	const date = new Date();
+
+	return {
+		day: date.getUTCDay() + 1,
+		month: date.getUTCMonth() + 1,
+		year: date.getUTCFullYear(),
+	};
 }

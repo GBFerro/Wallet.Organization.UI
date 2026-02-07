@@ -1,4 +1,4 @@
-import { signIn, SignInResponse, signUp } from "@services/auth";
+import { SignInResponse, signIn, signUp } from "@services/auth";
 import { ApiResponse } from "@services/http-client";
 import { getToken, getUser, removeToken } from "@services/storage";
 import React, {

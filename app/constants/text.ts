@@ -4,7 +4,18 @@ export const TEXT = {
 
 	nav: {
 		forecast: "Previsao",
-		transactions: "Transacoes",
+		transactions: {
+			incomes: "Ganhos",
+			expenses: "Gastos",
+		},
+		settings: "Ajustes",
+	},
+	header: {
+		forecast: "Monexo",
+		transactions: {
+			incomes: "Ganhos",
+			expenses: "Gastos",
+		},
 		settings: "Ajustes",
 	},
 

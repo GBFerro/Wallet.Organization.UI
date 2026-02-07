@@ -55,7 +55,7 @@ const groupByMonth = (projections: Projection[]): MonthData[] => {
 
 	projections.forEach((projection) => {
 		const date = new Date(projection.date);
-		const key = `${date.getFullYear()}-${date.getMonth()}`;
+		const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
 
 		if (!monthMap.has(key)) {
 			monthMap.set(key, []);

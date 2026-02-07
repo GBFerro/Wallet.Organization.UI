@@ -15,15 +15,15 @@ function AppContent() {
 
 export default function RootLayout() {
 	return (
-		<ErrorBoundary>
-			<ThemeProvider>
+		<ThemeProvider>
+			<ErrorBoundary>
 				<ToastProvider>
 					<AuthProvider>
 						<AppContent />
 					</AuthProvider>
 					<ToastContainer />
 				</ToastProvider>
-			</ThemeProvider>
-		</ErrorBoundary>
+			</ErrorBoundary>
+		</ThemeProvider>
 	);
 }
