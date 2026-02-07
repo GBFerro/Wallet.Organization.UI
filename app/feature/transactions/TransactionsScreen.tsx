@@ -2,7 +2,12 @@ import { FAB, SearchBar, ThemedView } from "@components/atoms";
 import { ScreenFlatList } from "@components/layout";
 import { EmptyState, LoadingState } from "@components/molecules";
 import { TransactionCard, TransactionForm } from "@components/organisms";
-import { CardEnum, RecurrenceEnum, Transaction } from "@constants/api";
+import {
+	CardEnum,
+	RecurrenceEnum,
+	Transaction,
+	TransactionEnum,
+} from "@constants/api";
 import { Spacing } from "@constants/theme";
 import { useTheme } from "@hooks/useTheme";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -23,7 +28,9 @@ import {
 	View,
 } from "react-native";
 
-export function TransactionsScreen() {
+export function TransactionsScreen({
+	type,
+}: Readonly<{ type: TransactionEnum }>) {
 	const { theme } = useTheme();
 	const headerHeight = useHeaderHeight();
 	const tabBarHeight = useBottomTabBarHeight();
@@ -39,7 +46,7 @@ export function TransactionsScreen() {
 
 	const loadTransactions = useCallback(async () => {
 		setError(null);
-		const result = await fetchTransactions();
+		const result = await fetchTransactions({ type });
 		if (!result.isSuccess) {
 			setTransactions([]);
 			return;

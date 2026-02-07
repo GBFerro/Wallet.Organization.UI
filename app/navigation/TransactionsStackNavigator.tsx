@@ -1,3 +1,4 @@
+import { TransactionEnum } from "@constants/api";
 import { TransactionsScreen } from "@feature/transactions/TransactionsScreen";
 import { useTheme } from "@hooks/useTheme";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -9,7 +10,15 @@ export type TransactionsStackParamList = {
 
 const Stack = createNativeStackNavigator<TransactionsStackParamList>();
 
-export default function TransactionsStackNavigator({ name, headerTitle }) {
+export default function TransactionsStackNavigator({
+	name,
+	headerTitle,
+	type,
+}: Readonly<{
+	name: any;
+	headerTitle: string;
+	type: TransactionEnum;
+}>) {
 	const { theme, isDark } = useTheme();
 
 	return (
@@ -21,7 +30,7 @@ export default function TransactionsStackNavigator({ name, headerTitle }) {
 		>
 			<Stack.Screen
 				name={name}
-				component={TransactionsScreen}
+				component={() => TransactionsScreen({ type })}
 				options={{
 					headerTitle,
 				}}

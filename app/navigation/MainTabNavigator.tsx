@@ -1,3 +1,4 @@
+import { TransactionEnum } from "@constants/api";
 import { TEXT } from "@constants/text";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
@@ -96,6 +97,7 @@ export default function MainTabNavigator() {
 					TransactionsStackNavigator({
 						name: "ExpensesScreen",
 						headerTitle: TEXT.header.transactions.expenses,
+						type: TransactionEnum.Expense,
 					})
 				}
 				options={{
@@ -109,6 +111,7 @@ export default function MainTabNavigator() {
 					TransactionsStackNavigator({
 						name: "IncomesScreen",
 						headerTitle: TEXT.header.transactions.incomes,
+						type: TransactionEnum.Income,
 					})
 				}
 				options={{

@@ -25,9 +25,21 @@ export interface CreateTransactionRequest {
 	};
 }
 
-export async function fetchTransactions(): Promise<ApiResponse<Transaction[]>> {
-	const result = await httpClient.get<any>("/api/transactions", {
+export async function fetchTransactions({
+	type,
+	paymentType,
+}: {
+	type?: TransactionEnum;
+	paymentType?: PaymentMethodEnum;
+}): Promise<ApiResponse<Transaction[]>> {
+	const params = {
+		type,
+		paymentType,
+	};
+	console.log(params);
+	const result = await httpClient.get<any>(`/api/transactions`, {
 		requiresAuth: true,
+		params,
 	});
 
 	logger.info(`[Transactions] Found ${result.data.length} transactions`);

@@ -1,16 +1,12 @@
 import { Toast } from "@contexts/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logger } from "@utils/logger";
+import axios from "axios";
+// @ts-ignore
+import type { AxiosRequestConfig, Method } from "axios/index";
 
 const API_BASE_URL = "https://parapodial-lamellarly-lue.ngrok-free.dev";
 const TOKEN_KEY = "@monexo:token";
-
-export interface ApiResponse<T = unknown> {
-	isSuccess: boolean;
-	data: T;
-	errors: Error[];
-	warnings: Warning[];
-}
 
 interface Error {
 	code: string;
@@ -19,10 +15,22 @@ interface Error {
 
 type Warning = Error;
 
-export interface RequestConfig extends RequestInit {
+export interface ApiResponse<T = unknown> {
+	isSuccess: boolean;
+	data: T;
+	errors: Error[];
+	warnings: Warning[];
+}
+
+export interface RequestConfig
+	extends Omit<AxiosRequestConfig, "headers" | "method" | "data" | "params"> {
 	requiresAuth?: boolean;
 	skipErrorLog?: boolean;
 	showToast?: boolean;
+	method?: Method;
+	data?: unknown;
+	headers?: Record<string, string>;
+	params?: Record<string, any>;
 }
 
 let toastHandler: ((toast: Omit<Toast, "id">) => void) | null = null;
@@ -53,8 +61,9 @@ async function request<T>(
 		skipErrorLog = false,
 		showToast: showToastFlag = true,
 		method = "GET",
-		body,
+		data: body,
 		headers = {},
+		params,
 		...restConfig
 	} = config;
 
@@ -67,21 +76,21 @@ async function request<T>(
 			? await getAuthHeaders()
 			: { ...defaultHeaders, ...headers };
 
-		const response = await fetch(url, {
-			method,
+		const axiosConfig: AxiosRequestConfig = {
+			url,
+			method: method as AxiosRequestConfig["method"],
 			headers: requestHeaders,
-			body: body ? JSON.stringify(body) : undefined,
+			data: body,
+			params,
 			...restConfig,
-		});
+		};
 
-		logger.info(
-			`[API] ${method} ${endpoint} - Status: ${JSON.stringify(response.body)}`,
-		);
-
-		const data: ApiResponse<T> = await response.json();
+		const response = await axios.request<ApiResponse<T>>(axiosConfig);
+		logger.info(`[API] ${method} ${endpoint} - Status: ${response.status}`);
+		const data = response.data;
 		logger.debug(`[API] ${method} ${endpoint} - Response:`, data);
 
-		if (!data.isSuccess && showToastFlag) {
+		if (!data.isSuccess && showToastFlag && toastHandler) {
 			data.errors.forEach((e) =>
 				toastHandler({ type: "error", title: e.code, description: e.message }),
 			);
@@ -96,15 +105,23 @@ async function request<T>(
 
 		return data;
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Erro desconhecido";
-		logger.error(`[API] ${method} ${endpoint} - Error:`, message);
+		let message = "Erro desconhecido";
 
-		toastHandler({
-			type: "error",
-			title: "Erro de Conexao",
-			description: "Ocorreu um erro",
-		});
+		if (error && typeof error === "object" && "isAxiosError" in error) {
+			message = (error as { message?: string }).message ?? message;
+			logger.error(`[API] ${method} ${endpoint} - AxiosError:`, message);
+		} else if (error instanceof Error) {
+			message = error.message;
+			logger.error(`[API] ${method} ${endpoint} - Error:`, message);
+		}
+
+		if (toastHandler) {
+			toastHandler({
+				type: "error",
+				title: "Erro de Conexao",
+				description: "Ocorreu um erro",
+			});
+		}
 
 		return {
 			data: {} as T,
@@ -116,33 +133,36 @@ async function request<T>(
 }
 
 export const httpClient = {
-	get: <T>(endpoint: string, config?: RequestConfig): Promise<ApiResponse<T>> =>
+	get: <T>(
+		endpoint: string,
+		config?: Omit<RequestConfig, "method" | "data">,
+	): Promise<ApiResponse<T>> =>
 		request<T>(endpoint, { ...config, method: "GET" }),
 
 	post: <T>(
 		endpoint: string,
 		body?: unknown,
-		config?: RequestConfig,
+		config?: Omit<RequestConfig, "method" | "data">,
 	): Promise<ApiResponse<T>> =>
-		request<T>(endpoint, { ...config, method: "POST", body: body as any }),
+		request<T>(endpoint, { ...config, method: "POST", data: body }),
 
 	put: <T>(
 		endpoint: string,
 		body?: unknown,
-		config?: RequestConfig,
+		config?: Omit<RequestConfig, "method" | "data">,
 	): Promise<ApiResponse<T>> =>
-		request<T>(endpoint, { ...config, method: "PUT", body: body as any }),
+		request<T>(endpoint, { ...config, method: "PUT", data: body }),
 
 	delete: <T>(
 		endpoint: string,
-		config?: RequestConfig,
+		config?: Omit<RequestConfig, "method" | "data">,
 	): Promise<ApiResponse<T>> =>
 		request<T>(endpoint, { ...config, method: "DELETE" }),
 
 	patch: <T>(
 		endpoint: string,
 		body?: unknown,
-		config?: RequestConfig,
+		config?: Omit<RequestConfig, "method" | "data">,
 	): Promise<ApiResponse<T>> =>
-		request<T>(endpoint, { ...config, method: "PATCH", body: body as any }),
+		request<T>(endpoint, { ...config, method: "PATCH", data: body }),
 };
