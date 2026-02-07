@@ -1,4 +1,3 @@
-import { HeaderTitle } from "@components/molecules";
 import { ForecastScreen } from "@feature/forecast/ForecastScreen";
 import { useTheme } from "@hooks/useTheme";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -11,11 +10,7 @@ export type ForecastStackParamList = {
 
 const Stack = createNativeStackNavigator<ForecastStackParamList>();
 
-function ForecastHeaderTitle() {
-	return <HeaderTitle title="FinForecast" />;
-}
-
-export default function ForecastStackNavigator() {
+export default function ForecastStackNavigator({ headerTitle }) {
 	const { theme, isDark } = useTheme();
 
 	return (
@@ -29,7 +24,7 @@ export default function ForecastStackNavigator() {
 				name="Forecast"
 				component={ForecastScreen}
 				options={{
-					headerTitle: ForecastHeaderTitle,
+					headerTitle,
 				}}
 			/>
 		</Stack.Navigator>

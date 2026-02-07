@@ -98,7 +98,6 @@ export const TEXT = {
 	transactions: {
 		title: "Transacoes",
 		searchPlaceholder: "Buscar transacoes...",
-		loading: "Carregando transacoes...",
 		errorLoad: "Erro ao carregar transacoes",
 		emptyTitle: "Nenhuma transacao encontrada",
 		emptyMessage: "Adicione sua primeira transacao",
@@ -106,9 +105,16 @@ export const TEXT = {
 	},
 
 	forecast: {
-		title: "FinForecast",
-		loading: "Carregando previsao...",
+		title: "Monexo",
+		header: "Projeção Mensal",
 		errorLoad: "Erro ao carregar previsao",
+		empty: "Nenhuma projecao disponivel para este periodo.",
+		period: "Periodo",
+		totalIncome: "Receita Total",
+		totalExpense: "Despesa Total",
+		netBalance: "Saldo Líquido",
+		currentBalance: "Saldo Atual",
+		selectPeriod: "Selecionar Período",
 	},
 
 	common: {
@@ -135,6 +141,7 @@ export const TEXT = {
 		unauthorized: "Nao autorizado",
 		notFound: "Nao encontrado",
 		serverError: "Erro no servidor",
+		tryAgain: "Tente novamente",
 	},
 } as const;
 

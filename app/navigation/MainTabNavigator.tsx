@@ -11,7 +11,8 @@ import TransactionsStackNavigator from "./TransactionsStackNavigator";
 
 export type MainTabParamList = {
 	ForecastTab: undefined;
-	TransactionsTab: undefined;
+	ExpensesTab: undefined;
+	IncomesTab: undefined;
 	SettingsTab: undefined;
 };
 
@@ -23,11 +24,15 @@ interface TabIconProps {
 }
 
 function ForecastTabIcon({ color, size }: Readonly<TabIconProps>) {
-	return <Feather name="trending-up" size={size} color={color} />;
+	return <Feather name="pie-chart" size={size} color={color} />;
 }
 
-function TransactionsTabIcon({ color, size }: Readonly<TabIconProps>) {
-	return <Feather name="list" size={size} color={color} />;
+function ExpensesTabIcon({ color, size }: Readonly<TabIconProps>) {
+	return <Feather name="credit-card" size={size} color={color} />;
+}
+
+function IncomesTabIcon({ color, size }: Readonly<TabIconProps>) {
+	return <Feather name="dollar-sign" size={size} color={color} />;
 }
 
 function SettingsTabIcon({ color, size }: Readonly<TabIconProps>) {
@@ -39,13 +44,9 @@ interface TabBarBackgroundProps {
 }
 
 function TabBarBackground({ isDark }: Readonly<TabBarBackgroundProps>) {
-	if (Platform.OS !== "ios") {
-		return null;
-	}
-
 	return (
 		<BlurView
-			intensity={100}
+			intensity={70}
 			tint={isDark ? "dark" : "light"}
 			style={StyleSheet.absoluteFill}
 		/>
@@ -81,23 +82,47 @@ export default function MainTabNavigator() {
 		>
 			<Tab.Screen
 				name="ForecastTab"
-				component={ForecastStackNavigator}
+				component={() =>
+					ForecastStackNavigator({ headerTitle: TEXT.header.forecast })
+				}
 				options={{
 					title: TEXT.nav.forecast,
 					tabBarIcon: ForecastTabIcon,
 				}}
 			/>
 			<Tab.Screen
-				name="TransactionsTab"
-				component={TransactionsStackNavigator}
+				name="ExpensesTab"
+				component={() =>
+					TransactionsStackNavigator({
+						name: "ExpensesScreen",
+						headerTitle: TEXT.header.transactions.expenses,
+					})
+				}
 				options={{
-					title: TEXT.nav.transactions,
-					tabBarIcon: TransactionsTabIcon,
+					title: TEXT.nav.transactions.expenses,
+					tabBarIcon: ExpensesTabIcon,
+				}}
+			/>
+			<Tab.Screen
+				name="IncomesTab"
+				component={() =>
+					TransactionsStackNavigator({
+						name: "IncomesScreen",
+						headerTitle: TEXT.header.transactions.incomes,
+					})
+				}
+				options={{
+					title: TEXT.nav.transactions.incomes,
+					tabBarIcon: IncomesTabIcon,
 				}}
 			/>
 			<Tab.Screen
 				name="SettingsTab"
-				component={SettingsStackNavigator}
+				component={() =>
+					SettingsStackNavigator({
+						headerTitle: TEXT.header.settings,
+					})
+				}
 				options={{
 					title: TEXT.nav.settings,
 					tabBarIcon: SettingsTabIcon,

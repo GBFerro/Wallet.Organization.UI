@@ -10,7 +10,7 @@ export type SettingsStackParamList = {
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
-export default function SettingsStackNavigator() {
+export default function SettingsStackNavigator({ headerTitle }) {
 	const { theme, isDark } = useTheme();
 
 	return (
@@ -24,7 +24,7 @@ export default function SettingsStackNavigator() {
 				name="Settings"
 				component={SettingsScreen}
 				options={{
-					headerTitle: "Ajustes",
+					headerTitle,
 				}}
 			/>
 		</Stack.Navigator>

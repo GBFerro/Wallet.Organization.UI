@@ -1,30 +1,16 @@
-import type { Projection } from "@constants/api";
-import { useTheme } from "@hooks/useTheme";
-import React, { createContext, useContext } from "react";
-
-export interface MonthData {
-	month: string;
-	year: number;
-	monthIndex: number;
-	projections: Projection[];
-	totalIncome: number;
-	totalExpenses: number;
-	finalBalance: number;
-}
-
-export interface MonthCardProps {
-	monthData: MonthData;
-	children: React.ReactNode;
-}
+import { Projection } from "@constants/api";
+import { createContext, useContext } from "react";
+import { Easing } from "react-native-reanimated";
 
 export interface MonthCardContextValue {
-	monthData: MonthData;
-	theme: ReturnType<typeof useTheme>["theme"];
+	projections: Projection[];
+	monthName: string;
+	year: number;
+	monthIndex: number;
 	expanded: boolean;
 	toggleExpand: () => void;
 	selectedDay: Projection | null;
 	setSelectedDay: (day: Projection | null) => void;
-	projectionMap: Map<number, Projection>;
 }
 
 export const MonthCardContext = createContext<MonthCardContextValue | null>(
@@ -41,4 +27,4 @@ export function useMonthCardContext() {
 	return context;
 }
 
-export type { Projection } from "@constants/api";
+export const EASE_IN_OUT = Easing.bezier(0.42, 0, 0.58, 1);

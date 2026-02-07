@@ -9,21 +9,21 @@ export type TransactionsStackParamList = {
 
 const Stack = createNativeStackNavigator<TransactionsStackParamList>();
 
-export default function TransactionsStackNavigator() {
+export default function TransactionsStackNavigator({ name, headerTitle }) {
 	const { theme, isDark } = useTheme();
 
 	return (
 		<Stack.Navigator
-			id="TransactionsScreen"
+			id={name}
 			screenOptions={{
 				...getCommonScreenOptions({ theme, isDark }),
 			}}
 		>
 			<Stack.Screen
-				name="Transactions"
+				name={name}
 				component={TransactionsScreen}
 				options={{
-					headerTitle: "Transacoes",
+					headerTitle,
 				}}
 			/>
 		</Stack.Navigator>

@@ -1,64 +1,52 @@
+import { Projection } from "@constants/api";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useTheme } from "@hooks/useTheme";
-import React, { useState } from "react";
-import {
-	LayoutAnimation,
-	Platform,
-	StyleSheet,
-	UIManager,
-	View,
-} from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import {
 	MonthCardContext,
 	type MonthCardContextValue,
-	type MonthCardProps,
-	type Projection,
 } from "./MonthCardContext";
 
-if (
-	Platform.OS === "android" &&
-	UIManager.setLayoutAnimationEnabledExperimental
-) {
-	UIManager.setLayoutAnimationEnabledExperimental(true);
+interface MonthCardRootProps {
+	projections: Projection[];
+	monthName: string;
+	year: number;
+	monthIndex: number;
+	children: React.ReactNode;
 }
 
 export function MonthCardRoot({
-	monthData,
+	projections,
+	monthName,
+	year,
+	monthIndex,
 	children,
-}: Readonly<MonthCardProps>) {
+}: Readonly<MonthCardRootProps>) {
 	const { theme } = useTheme();
 	const [expanded, setExpanded] = useState(false);
 	const [selectedDay, setSelectedDay] = useState<Projection | null>(null);
 
-	const projectionMap = React.useMemo(() => {
-		const map = new Map<number, Projection>();
-		monthData.projections.forEach((p) => {
-			const day = new Date(p.date).getUTCDate();
-			map.set(day, p);
-		});
-		return map;
-	}, [monthData.projections]);
-
-	const toggleExpand = () => {
-		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+	const toggleExpand = useCallback(() => {
 		setExpanded((prev) => !prev);
-	};
+	}, []);
 
-	const contextValue: MonthCardContextValue = React.useMemo(
+	const value: MonthCardContextValue = useMemo(
 		() => ({
-			monthData,
-			theme,
+			projections,
+			monthName,
+			year,
+			monthIndex,
 			expanded,
 			toggleExpand,
 			selectedDay,
 			setSelectedDay,
-			projectionMap,
 		}),
-		[monthData, theme, expanded, selectedDay, projectionMap],
+		[projections, monthName, year, monthIndex, expanded, selectedDay],
 	);
 
 	return (
-		<MonthCardContext.Provider value={contextValue}>
+		<MonthCardContext.Provider value={value}>
 			<View
 				style={[styles.container, { backgroundColor: theme.backgroundDefault }]}
 			>
@@ -73,5 +61,10 @@ const styles = StyleSheet.create({
 		borderRadius: BorderRadius.sm,
 		marginBottom: Spacing.lg,
 		overflow: "hidden",
+		shadowColor: "#000",
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.05,
+		shadowRadius: 3,
+		elevation: 1,
 	},
 });
