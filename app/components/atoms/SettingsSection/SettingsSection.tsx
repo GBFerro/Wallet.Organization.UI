@@ -1,4 +1,4 @@
-import { ThemedText } from "@components/atoms";
+import { ThemedText } from "@components/atoms/ThemedText";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useTheme } from "@hooks/useTheme";
 import React from "react";

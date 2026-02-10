@@ -36,7 +36,6 @@ export async function fetchTransactions({
 		type,
 		paymentType,
 	};
-	console.log(params);
 	const result = await httpClient.get<any>(`/api/transactions`, {
 		requiresAuth: true,
 		params,

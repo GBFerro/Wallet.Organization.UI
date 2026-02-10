@@ -13,8 +13,10 @@ import {
 import { BorderRadius, Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 import {
+	Platform,
 	Pressable,
 	ScrollView,
 	StyleSheet,
@@ -52,6 +54,10 @@ export function TransactionForm({
 	const [frequency, setFrequency] = useState<RecurrenceEnum>(
 		transaction?.payment.frequency || RecurrenceEnum.OneTime,
 	);
+	const [date, setDate] = useState<Date>(
+		transaction?.date ? new Date(transaction.date) : new Date(),
+	);
+	const [showDatePicker, setShowDatePicker] = useState(false);
 
 	const isValid = amount.length > 0 && Number.parseFloat(amount) > 0;
 
@@ -61,7 +67,7 @@ export function TransactionForm({
 		const newTransaction: Transaction = {
 			id: transaction?.id || `trans-${Date.now()}`,
 			description: description || undefined,
-			date: transaction?.date || new Date().toISOString().split("T")[0],
+			date: date.toISOString().split("T")[0],
 			type,
 			payment: {
 				id: transaction?.payment.id || `pay-${Date.now()}`,
@@ -200,6 +206,67 @@ export function TransactionForm({
 							</Pressable>
 						))}
 					</View>
+				</View>
+
+				<View style={styles.section}>
+					<ThemedText
+						type="caption"
+						style={[styles.label, { color: theme.textSecondary }]}
+					>
+						DATA
+					</ThemedText>
+					<Pressable
+						onPress={() => setShowDatePicker(true)}
+						style={[
+							styles.input,
+							styles.dateInput,
+							{
+								backgroundColor: theme.backgroundDefault,
+								borderColor: theme.border,
+							},
+						]}
+					>
+						<View style={styles.dateInputContent}>
+							<Feather name="calendar" size={20} color={theme.textSecondary} />
+							<ThemedText type="body" style={{ color: theme.text }}>
+								{date.toLocaleDateString("pt-BR", {
+									day: "2-digit",
+									month: "2-digit",
+									year: "numeric",
+								})}
+							</ThemedText>
+						</View>
+					</Pressable>
+					{showDatePicker && (
+						<DateTimePicker
+							value={date}
+							mode="date"
+							display={Platform.OS === "ios" ? "spinner" : "default"}
+							onChange={(event, selectedDate) => {
+								if (Platform.OS === "android") {
+									setShowDatePicker(false);
+								}
+								if (selectedDate) {
+									setDate(selectedDate);
+								}
+							}}
+							maximumDate={new Date(2100, 11, 31)}
+							minimumDate={new Date(2000, 0, 1)}
+						/>
+					)}
+					{Platform.OS === "ios" && showDatePicker && (
+						<Pressable
+							onPress={() => setShowDatePicker(false)}
+							style={[
+								styles.datePickerDoneButton,
+								{ backgroundColor: theme.primary },
+							]}
+						>
+							<ThemedText type="body" style={{ color: "#FFFFFF" }}>
+								Concluir
+							</ThemedText>
+						</Pressable>
+					)}
 				</View>
 
 				<View style={styles.section}>
@@ -391,5 +458,19 @@ const styles = StyleSheet.create({
 		paddingVertical: Spacing.lg,
 		borderRadius: BorderRadius.sm,
 		borderWidth: 1,
+	},
+	dateInput: {
+		padding: Spacing.lg,
+	},
+	dateInputContent: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: Spacing.md,
+	},
+	datePickerDoneButton: {
+		marginTop: Spacing.md,
+		paddingVertical: Spacing.md,
+		borderRadius: BorderRadius.sm,
+		alignItems: "center",
 	},
 });

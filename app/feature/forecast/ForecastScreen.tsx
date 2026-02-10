@@ -9,6 +9,7 @@ import {
 } from "@constants/api";
 import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
+import { useEvent } from "@contexts/EventContext";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -94,6 +95,7 @@ const groupByMonth = (projections: Projection[]): MonthData[] => {
 
 export function ForecastScreen() {
 	const { theme } = useTheme();
+	const { onTransactionChange } = useEvent();
 	const headerHeight = useHeaderHeight();
 	const tabBarHeight = useBottomTabBarHeight();
 
@@ -126,7 +128,14 @@ export function ForecastScreen() {
 	useEffect(() => {
 		setLoading(true);
 		loadData(selectedPeriod).finally(() => setLoading(false));
-	}, []);
+	}, [selectedPeriod, loadData]);
+
+	useEffect(() => {
+		const unsubscribe = onTransactionChange(() => {
+			loadData(selectedPeriod);
+		});
+		return unsubscribe;
+	}, [selectedPeriod, loadData, onTransactionChange]);
 
 	const monthsData = useMemo(() => {
 		if (!data) return [];

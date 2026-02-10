@@ -1,4 +1,4 @@
-import { ThemedText } from "@components/atoms";
+import { ThemedText } from "@components/atoms/ThemedText";
 import { Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";

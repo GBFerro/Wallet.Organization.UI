@@ -9,6 +9,7 @@ import {
 	TransactionEnum,
 } from "@constants/api";
 import { Spacing } from "@constants/theme";
+import { useEvent } from "@contexts/EventContext";
 import { useTheme } from "@hooks/useTheme";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useHeaderHeight } from "@react-navigation/elements";
@@ -32,6 +33,7 @@ export function TransactionsScreen({
 	type,
 }: Readonly<{ type: TransactionEnum }>) {
 	const { theme } = useTheme();
+	const { emitTransactionChange } = useEvent();
 	const headerHeight = useHeaderHeight();
 	const tabBarHeight = useBottomTabBarHeight();
 
@@ -123,11 +125,13 @@ export function TransactionsScreen({
 				setTransactions((prev) =>
 					prev.map((t) => (t.id === transaction.id ? result.data : t)),
 				);
+				emitTransactionChange();
 			}
 		} else {
 			const result = await createTransaction(payload);
 			if (result.isSuccess && result.data) {
 				setTransactions((prev) => [result.data, ...prev]);
+				emitTransactionChange();
 			}
 		}
 
