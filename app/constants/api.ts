@@ -1,4 +1,3 @@
-/** Data civil "yyyy-MM-dd", sem hora e sem offset. Parseie com parseCivilDate. */
 export type CivilDate = string;
 
 export enum PeriodEnum {
@@ -46,12 +45,6 @@ export enum CardEnum {
 	None = "None",
 }
 
-/**
- * Garantias do backend, nao dedutiveis daqui: serie densa (todo dia do periodo
- * presente, zerado sem lancamento) e ascendente por data; despesas com magnitude
- * positiva e apenas netChange sinalizado; cashEquivalentExpenses agrega Debito,
- * Pix e Dinheiro, e otherExpenses todo o resto.
- */
 export interface Projection {
 	date: CivilDate;
 	openingBalance: number;
@@ -96,10 +89,6 @@ export interface Transaction {
 	payment: Payment;
 }
 
-/**
- * O backend rejeita `installment` fora de recorrencia mensal e exige valor maior
- * que uma parcela; `bankInfo` ausente e valido e representa pagamento sem cartao.
- */
 export interface TransactionPayload {
 	description: string;
 	date: CivilDate;

@@ -48,9 +48,6 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 		checkAuth();
 	}, []);
 
-	// Sessao sem refresh token nao sobrevive ao primeiro 401. Montar as abas e
-	// derruba-las no frame seguinte quebra o react-native-screens, entao ela e
-	// descartada aqui e o login aparece direto.
 	async function checkAuth() {
 		setIsLoading(true);
 		const [token, refreshToken, storedUser] = await Promise.all([
@@ -108,11 +105,6 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 		setUser(null);
 	}, []);
 
-	// Um 401 que a renovacao de token nao resolveu derruba a sessao aqui, e a
-	// ausencia de usuario faz `app/index.tsx` voltar para o login. A troca so
-	// acontece com a navegacao parada: desmontar as telas nativas no meio de uma
-	// transicao fecha o app sem log nenhum. `runAfterInteractions` esta marcada
-	// como deprecada, mas e a unica que espera a transicao terminar.
 	useEffect(() => {
 		setSessionExpiredHandler(() => {
 			InteractionManager.runAfterInteractions(() => {

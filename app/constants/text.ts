@@ -54,13 +54,11 @@ export const TEXT = {
 		defaultUser: "Usuario",
 		defaultEmail: "usuario@email.com",
 
-		// Sections
 		sectionAccount: "CONTA",
 		sectionPreferences: "PREFERENCIAS",
 		sectionSupport: "SUPORTE",
 		sectionSession: "SESSAO",
 
-		// Account Items
 		profile: "Perfil",
 		profileSubtitle: "Editar informacoes pessoais",
 		notifications: "Notificacoes",
@@ -68,7 +66,6 @@ export const TEXT = {
 		security: "Seguranca",
 		securitySubtitle: "Senha e autenticacao",
 
-		// Preferences
 		currency: "Moeda",
 		currencySubtitle: "BRL - Real Brasileiro",
 		darkMode: "Modo Escuro",
@@ -77,7 +74,6 @@ export const TEXT = {
 		language: "Idioma",
 		languageSubtitle: "Portugues (Brasil)",
 
-		// Support
 		help: "Ajuda",
 		helpSubtitle: "Perguntas frequentes",
 		contact: "Contato",
@@ -85,11 +81,9 @@ export const TEXT = {
 		terms: "Termos de Uso",
 		privacy: "Politica de Privacidade",
 
-		// Session
 		logout: "Sair",
 		deleteAccount: "Excluir Conta",
 
-		// Alerts
 		logoutConfirmTitle: "Sair",
 		logoutConfirmMessage: "Deseja sair da sua conta?",
 		deleteConfirmTitle: "Excluir Conta",

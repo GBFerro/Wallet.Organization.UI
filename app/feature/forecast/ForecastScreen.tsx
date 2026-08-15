@@ -133,8 +133,6 @@ export function ForecastScreen() {
 		return groupByMonth(data.projections);
 	}, [data]);
 
-	// openingBalance/closingBalance do periodo ja vem prontos; so os totais de
-	// receita e despesa precisam ser somados das projecoes.
 	const totalSummary = useMemo(() => {
 		if (!data) {
 			return {

@@ -1,9 +1,5 @@
 const CIVIL_DATE = /^(\d{4})-(\d{2})-(\d{2})/;
 
-/**
- * new Date("2026-08-31") parseia como UTC, entao em UTC-3 vira 30/08 e todo dia
- * 1 escorrega para o mes anterior. Datas da API sao civis, nao instantes.
- */
 export function parseCivilDate(value: string): Date {
 	const match = CIVIL_DATE.exec(value);
 	if (!match) {
@@ -12,14 +8,12 @@ export function parseCivilDate(value: string): Date {
 	return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
-/** DateOnly do backend: a data escolhida e civil, entao toISOString erraria o dia. */
 export function toCivilDate(date: Date): string {
 	const month = String(date.getMonth() + 1).padStart(2, "0");
 	const day = String(date.getDate()).padStart(2, "0");
 	return `${date.getFullYear()}-${month}-${day}`;
 }
 
-/** Teclado pt-BR digita "1.234,56"; Number.parseFloat leria isso como 1. */
 export function parseAmount(value: string): number {
 	const normalized = value.includes(",")
 		? value.replaceAll(".", "").replace(",", ".")

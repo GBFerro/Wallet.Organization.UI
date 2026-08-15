@@ -21,8 +21,6 @@ export async function fetchTransactions({
 	const result = await httpClient.get<Transaction[]>("/api/transactions", {
 		requiresAuth: true,
 		params: { type, paymentType },
-		// Lista vazia volta como sucesso com warning `Transactions.Empty`; o estado
-		// vazio da tela ja comunica isso, entao o toast so gera ruido.
 		showWarnings: false,
 	});
 

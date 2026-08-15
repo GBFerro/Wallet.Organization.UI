@@ -92,8 +92,6 @@ export function changeMethod(
 ): TransactionDraft {
 	let next: TransactionDraft = { ...draft, method };
 
-	// Parcela so existe em recorrencia mensal, entao escolher credito ja move a
-	// recorrencia junto — caso contrario o campo de parcelas nunca apareceria.
 	if (
 		method === PaymentMethodEnum.CreditCard &&
 		next.frequency !== RecurrenceEnum.Monthly

@@ -12,16 +12,6 @@ import { useTheme } from "@hooks/useTheme";
 import { formatCurrency } from "@utils/format";
 import { Pressable, View } from "react-native";
 
-/**
- * Examples of using compound components
- *
- * Run these examples in your screens to see compound components in action.
- */
-
-// ============================================
-// 1. CARD EXAMPLES
-// ============================================
-
 export function CardExamples() {
 	const { theme } = useTheme();
 
@@ -81,10 +71,6 @@ export function CardExamples() {
 	);
 }
 
-// ============================================
-// 2. SUMMARY CARD EXAMPLES
-// ============================================
-
 export function SummaryCardExamples() {
 	const { theme } = useTheme();
 
@@ -131,10 +117,6 @@ export function SummaryCardExamples() {
 		</View>
 	);
 }
-
-// ============================================
-// 3. TRANSACTION CARD EXAMPLES
-// ============================================
 
 export function TransactionCardExamples() {
 	const { theme } = useTheme();
@@ -320,10 +302,6 @@ export function TransactionCardExamples() {
 	);
 }
 
-// ============================================
-// 4. MONTH CARD EXAMPLES
-// ============================================
-
 export function MonthCardExamples() {
 	const monthData = {
 		month: "Janeiro",
@@ -417,10 +395,6 @@ export function MonthCardExamples() {
 		</View>
 	);
 }
-
-// ============================================
-// COMBINED EXAMPLE - Dashboard
-// ============================================
 
 export function DashboardExample() {
 	const { theme } = useTheme();

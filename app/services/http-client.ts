@@ -134,8 +134,6 @@ function handleRequestFailure<T>(
 	} = config;
 
 	const payload = (error as { response?: { data?: unknown } })?.response?.data;
-	// O backend responde erro de negocio com HTTP 500 mas envelope valido, e o
-	// axios lanca fora de 2xx: sem ler response.data a mensagem real se perde.
 	const envelope = asApiResponse<T>(payload) ?? asProblemDetails<T>(payload);
 
 	if (envelope) {
@@ -195,7 +193,6 @@ async function refreshAccessToken(): Promise<boolean> {
 	return true;
 }
 
-/** Requisicoes paralelas que expiram juntas devem renovar o token uma unica vez. */
 async function ensureFreshToken(showToastFlag: boolean): Promise<boolean> {
 	refreshInFlight ??= refreshAccessToken()
 		.then(async (renewed) => {
@@ -213,15 +210,10 @@ async function ensureFreshToken(showToastFlag: boolean): Promise<boolean> {
 
 let sessionEnded = false;
 
-/** Uma nova sessao reabilita o encerramento, que so acontece uma vez por sessao. */
 export function markSessionActive() {
 	sessionEnded = false;
 }
 
-/**
- * Um 401 que a renovacao nao resolveu encerra a sessao: sem isso o usuario fica
- * numa tela autenticada onde toda chamada falha.
- */
 async function endSession(showToastFlag: boolean): Promise<void> {
 	if (sessionEnded) return;
 	sessionEnded = true;
@@ -266,7 +258,6 @@ function asApiResponse<T>(value: unknown): ApiResponse<T> | null {
 	if (!isEnvelopeShape(value)) {
 		return null;
 	}
-	// O 401 serializa o envelope sem `data` e sem `warnings`.
 	const envelope = value as Partial<ApiResponse<T>> & { isSuccess: boolean };
 	return {
 		isSuccess: envelope.isSuccess,
@@ -282,10 +273,6 @@ interface ProblemDetails {
 	errors?: Record<string, string[]>;
 }
 
-/**
- * Falha de model binding (enum invalido, corpo sem campo `required`) nao passa
- * pelo Result: o ASP.NET responde ProblemDetails cru, fora do envelope.
- */
 function asProblemDetails<T>(value: unknown): ApiResponse<T> | null {
 	if (typeof value !== "object" || value === null || !("title" in value)) {
 		return null;
@@ -312,7 +299,6 @@ function asProblemDetails<T>(value: unknown): ApiResponse<T> | null {
 	};
 }
 
-/** `code` e chave de catalogo e `message` e o texto humano — mas o 401 troca os dois. */
 function humanText(entry: ApiError): string {
 	const looksLikeKey = (value: string) => /^[a-z0-9._-]+$/.test(value);
 

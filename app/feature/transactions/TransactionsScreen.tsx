@@ -111,8 +111,6 @@ export function TransactionsScreen({
 		}
 	};
 
-	// A resposta de criacao omite frequency/installment, entao a lista e recarregada
-	// em vez de receber o item devolvido pela API.
 	const handleSaveTransaction = async (payload: TransactionPayload) => {
 		const result = editingTransaction
 			? await updateTransaction(editingTransaction.id, payload)
