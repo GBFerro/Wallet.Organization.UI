@@ -1,13 +1,13 @@
+/** Data civil "yyyy-MM-dd", sem hora e sem offset. Parseie com parseCivilDate. */
+export type CivilDate = string;
+
 export enum PeriodEnum {
-	ThisYear = "ThisYear",
-	Year = "Year",
-	ThisSemester = "ThisSemester",
-	Semester = "Semester",
-	ThisQuarter = "ThisQuarter",
-	Quarter = "Quarter",
-	ThisTrimester = "ThisTrimester",
-	Trimester = "Trimester",
-	None = "None",
+	RestOfQuarter = "RestOfQuarter",
+	RestOfSemester = "RestOfSemester",
+	RestOfYear = "RestOfYear",
+	NextThreeMonths = "NextThreeMonths",
+	NextSixMonths = "NextSixMonths",
+	NextTwelveMonths = "NextTwelveMonths",
 }
 
 export enum TransactionEnum {
@@ -46,25 +46,35 @@ export enum CardEnum {
 	None = "None",
 }
 
+/**
+ * Garantias do backend, nao dedutiveis daqui: serie densa (todo dia do periodo
+ * presente, zerado sem lancamento) e ascendente por data; despesas com magnitude
+ * positiva e apenas netChange sinalizado; cashEquivalentExpenses agrega Debito,
+ * Pix e Dinheiro, e otherExpenses todo o resto.
+ */
 export interface Projection {
-	date: string;
-	net: number;
+	date: CivilDate;
+	openingBalance: number;
 	income: number;
-	cardExpenses: number;
-	debitExpenses: number;
+	creditCardExpenses: number;
+	cashEquivalentExpenses: number;
 	otherExpenses: number;
 	totalExpenses: number;
-	currentAmount: number;
+	netChange: number;
+	closingBalance: number;
 }
 
 export interface ForecastResponse {
-	startDate: string;
+	startDate: CivilDate;
+	endDate: CivilDate;
+	openingBalance: number;
+	closingBalance: number;
 	projections: Projection[];
 }
 
 export interface BankInfo {
 	id?: string;
-	name?: string;
+	name: string;
 	card: CardEnum;
 }
 
@@ -73,29 +83,61 @@ export interface Payment {
 	amount: number;
 	currency?: string;
 	frequency?: RecurrenceEnum;
-	installment?: number;
+	installment?: number | null;
 	method: PaymentMethodEnum;
-	bankInfo?: BankInfo;
+	bankInfo?: BankInfo | null;
 }
 
 export interface Transaction {
 	id: string;
 	description?: string;
-	date: string;
+	date: CivilDate;
 	type: TransactionEnum;
 	payment: Payment;
 }
 
+/**
+ * O backend rejeita `installment` fora de recorrencia mensal e exige valor maior
+ * que uma parcela; `bankInfo` ausente e valido e representa pagamento sem cartao.
+ */
+export interface TransactionPayload {
+	description: string;
+	date: CivilDate;
+	type: TransactionEnum;
+	payment: {
+		amount: number;
+		currency: string;
+		frequency: RecurrenceEnum;
+		installment?: number;
+		method: PaymentMethodEnum;
+		bankInfo?: {
+			name: string;
+			card: CardEnum;
+		};
+	};
+}
+
+export const CARD_LABELS: Record<CardEnum, string> = {
+	[CardEnum.Physical]: "Fisico",
+	[CardEnum.Virtual]: "Virtual",
+	[CardEnum.Prepaid]: "Pre-pago",
+	[CardEnum.NonStop]: "Multiplo",
+	[CardEnum.Ticket]: "Vale",
+	[CardEnum.None]: "Nenhum",
+};
+
+export const CARD_PAYMENT_METHODS: PaymentMethodEnum[] = [
+	PaymentMethodEnum.CreditCard,
+	PaymentMethodEnum.DebitCard,
+];
+
 export const PERIOD_LABELS: Record<PeriodEnum, string> = {
-	[PeriodEnum.ThisYear]: "Este Ano",
-	[PeriodEnum.Year]: "Ano",
-	[PeriodEnum.ThisSemester]: "Este Semestre",
-	[PeriodEnum.Semester]: "Semestre",
-	[PeriodEnum.ThisQuarter]: "Este Trimestre",
-	[PeriodEnum.Quarter]: "Trimestre",
-	[PeriodEnum.ThisTrimester]: "Este Bimestre",
-	[PeriodEnum.Trimester]: "Bimestre",
-	[PeriodEnum.None]: "Todos",
+	[PeriodEnum.RestOfQuarter]: "Resto do Trimestre",
+	[PeriodEnum.RestOfSemester]: "Resto do Semestre",
+	[PeriodEnum.RestOfYear]: "Resto do Ano",
+	[PeriodEnum.NextThreeMonths]: "Proximos 3 Meses",
+	[PeriodEnum.NextSixMonths]: "Proximos 6 Meses",
+	[PeriodEnum.NextTwelveMonths]: "Proximos 12 Meses",
 };
 
 export const TRANSACTION_TYPE_LABELS: Record<TransactionEnum, string> = {

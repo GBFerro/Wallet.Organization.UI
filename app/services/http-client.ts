@@ -1,3 +1,4 @@
+import { TEXT } from "@constants/text";
 import { Toast } from "@contexts/ToastContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logger } from "@utils/logger";
@@ -7,19 +8,20 @@ import type { AxiosRequestConfig, Method } from "axios/index";
 
 const API_BASE_URL = "https://parapodial-lamellarly-lue.ngrok-free.dev";
 const TOKEN_KEY = "@monexo:token";
+const REFRESH_TOKEN_KEY = "@monexo:refresh-token";
 
-interface Error {
+export interface ApiError {
 	code: string;
 	message: string;
 }
 
-type Warning = Error;
+export type ApiWarning = ApiError;
 
 export interface ApiResponse<T = unknown> {
 	isSuccess: boolean;
 	data: T;
-	errors: Error[];
-	warnings: Warning[];
+	errors: ApiError[];
+	warnings: ApiWarning[];
 }
 
 export interface RequestConfig
@@ -27,6 +29,7 @@ export interface RequestConfig
 	requiresAuth?: boolean;
 	skipErrorLog?: boolean;
 	showToast?: boolean;
+	showWarnings?: boolean;
 	method?: Method;
 	data?: unknown;
 	headers?: Record<string, string>;
@@ -37,6 +40,12 @@ let toastHandler: ((toast: Omit<Toast, "id">) => void) | null = null;
 
 export function setToastHandler(handler: (toast: Omit<Toast, "id">) => void) {
 	toastHandler = handler;
+}
+
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function setSessionExpiredHandler(handler: () => void) {
+	sessionExpiredHandler = handler;
 }
 
 const defaultHeaders = {
@@ -55,11 +64,13 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 async function request<T>(
 	endpoint: string,
 	config: RequestConfig = {},
+	allowRefresh = true,
 ): Promise<ApiResponse<T>> {
 	const {
 		requiresAuth = false,
 		skipErrorLog = false,
 		showToast: showToastFlag = true,
+		showWarnings = true,
 		method = "GET",
 		data: body,
 		headers = {},
@@ -90,46 +101,246 @@ async function request<T>(
 		const data = response.data;
 		logger.debug(`[API] ${method} ${endpoint} - Response:`, data);
 
-		if (!data.isSuccess && showToastFlag && toastHandler) {
-			data.errors.forEach((e) =>
-				toastHandler({ type: "error", title: e.code, description: e.message }),
-			);
-			data.warnings.forEach((w) =>
-				toastHandler({
-					type: "warning",
-					title: w.code,
-					description: w.message,
-				}),
-			);
+		if (!data.isSuccess && showToastFlag) {
+			notify(data, showWarnings);
 		}
 
 		return data;
 	} catch (error) {
-		let message = "Erro desconhecido";
+		const status = (error as { response?: { status?: number } })?.response
+			?.status;
 
-		if (error && typeof error === "object" && "isAxiosError" in error) {
-			message = (error as { message?: string }).message ?? message;
-			logger.error(`[API] ${method} ${endpoint} - AxiosError:`, message);
-		} else if (error instanceof Error) {
-			message = error.message;
-			logger.error(`[API] ${method} ${endpoint} - Error:`, message);
+		if (status === 401 && requiresAuth) {
+			if (allowRefresh && (await ensureFreshToken(showToastFlag))) {
+				return request<T>(endpoint, config, false);
+			}
+			await endSession(showToastFlag);
+			return sessionExpiredEnvelope<T>();
 		}
 
-		if (toastHandler) {
-			toastHandler({
-				type: "error",
-				title: "Erro de Conexao",
-				description: "Ocorreu um erro",
-			});
-		}
-
-		return {
-			data: {} as T,
-			warnings: [],
-			isSuccess: false,
-			errors: [{ code: "Erro.Inexperado", message: "Ocorreu um erro" }],
-		};
+		return handleRequestFailure<T>(error, `${method} ${endpoint}`, config);
 	}
+}
+
+function handleRequestFailure<T>(
+	error: unknown,
+	label: string,
+	config: RequestConfig,
+): ApiResponse<T> {
+	const {
+		skipErrorLog = false,
+		showToast: showToastFlag = true,
+		showWarnings = true,
+	} = config;
+
+	const payload = (error as { response?: { data?: unknown } })?.response?.data;
+	// O backend responde erro de negocio com HTTP 500 mas envelope valido, e o
+	// axios lanca fora de 2xx: sem ler response.data a mensagem real se perde.
+	const envelope = asApiResponse<T>(payload) ?? asProblemDetails<T>(payload);
+
+	if (envelope) {
+		if (!skipErrorLog) {
+			logger.error(`[API] ${label} - Envelope de erro:`, envelope.errors);
+		}
+		if (showToastFlag) {
+			notify(envelope, showWarnings);
+		}
+		return envelope;
+	}
+
+	if (!skipErrorLog) {
+		const message =
+			error instanceof Error ? error.message : TEXT.errors.unknown;
+		logger.error(`[API] ${label} - ${message}`);
+	}
+
+	if (showToastFlag) {
+		toastHandler?.({
+			type: "error",
+			title: TEXT.errors.network,
+			description: TEXT.errors.tryAgain,
+		});
+	}
+
+	return {
+		data: {} as T,
+		warnings: [],
+		isSuccess: false,
+		errors: [{ code: "error.network", message: TEXT.errors.network }],
+	};
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function refreshAccessToken(): Promise<boolean> {
+	const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+	if (!refreshToken) {
+		logger.info("[API] Sem refresh token armazenado");
+		return false;
+	}
+
+	const result = await request<{ accessToken: string; refreshToken: string }>(
+		"/api/auth/refresh-token",
+		{ method: "POST", data: { refreshToken }, showToast: false },
+	);
+
+	if (!result.isSuccess || !result.data?.accessToken) {
+		return false;
+	}
+
+	await AsyncStorage.setItem(TOKEN_KEY, result.data.accessToken);
+	await AsyncStorage.setItem(REFRESH_TOKEN_KEY, result.data.refreshToken);
+	logger.info("[API] Token renovado");
+
+	return true;
+}
+
+/** Requisicoes paralelas que expiram juntas devem renovar o token uma unica vez. */
+async function ensureFreshToken(showToastFlag: boolean): Promise<boolean> {
+	refreshInFlight ??= refreshAccessToken()
+		.then(async (renewed) => {
+			if (!renewed) {
+				await endSession(showToastFlag);
+			}
+			return renewed;
+		})
+		.finally(() => {
+			refreshInFlight = null;
+		});
+
+	return refreshInFlight;
+}
+
+let sessionEnded = false;
+
+/** Uma nova sessao reabilita o encerramento, que so acontece uma vez por sessao. */
+export function markSessionActive() {
+	sessionEnded = false;
+}
+
+/**
+ * Um 401 que a renovacao nao resolveu encerra a sessao: sem isso o usuario fica
+ * numa tela autenticada onde toda chamada falha.
+ */
+async function endSession(showToastFlag: boolean): Promise<void> {
+	if (sessionEnded) return;
+	sessionEnded = true;
+
+	logger.error("[API] Sessao expirada");
+	await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY]);
+	sessionExpiredHandler?.();
+
+	if (showToastFlag) {
+		toastHandler?.({
+			type: "error",
+			title: TEXT.errors.unauthorized,
+			description: TEXT.errors.sessionExpired,
+		});
+	}
+}
+
+function sessionExpiredEnvelope<T>(): ApiResponse<T> {
+	return {
+		data: {} as T,
+		warnings: [],
+		isSuccess: false,
+		errors: [
+			{
+				code: "error.auth.session-expired",
+				message: TEXT.errors.sessionExpired,
+			},
+		],
+	};
+}
+
+function isEnvelopeShape(value: unknown): value is ApiResponse<unknown> {
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"isSuccess" in value &&
+		Array.isArray((value as { errors?: unknown }).errors)
+	);
+}
+
+function asApiResponse<T>(value: unknown): ApiResponse<T> | null {
+	if (!isEnvelopeShape(value)) {
+		return null;
+	}
+	// O 401 serializa o envelope sem `data` e sem `warnings`.
+	const envelope = value as Partial<ApiResponse<T>> & { isSuccess: boolean };
+	return {
+		isSuccess: envelope.isSuccess,
+		data: (envelope.data ?? {}) as T,
+		errors: envelope.errors ?? [],
+		warnings: envelope.warnings ?? [],
+	};
+}
+
+interface ProblemDetails {
+	title?: string;
+	status?: number;
+	errors?: Record<string, string[]>;
+}
+
+/**
+ * Falha de model binding (enum invalido, corpo sem campo `required`) nao passa
+ * pelo Result: o ASP.NET responde ProblemDetails cru, fora do envelope.
+ */
+function asProblemDetails<T>(value: unknown): ApiResponse<T> | null {
+	if (typeof value !== "object" || value === null || !("title" in value)) {
+		return null;
+	}
+
+	const problem = value as ProblemDetails;
+	const fieldErrors = Object.entries(problem.errors ?? {}).flatMap(
+		([field, messages]) =>
+			messages.map((message) => ({ code: field, message })),
+	);
+
+	return {
+		isSuccess: false,
+		data: {} as T,
+		warnings: [],
+		errors: fieldErrors.length
+			? fieldErrors
+			: [
+					{
+						code: "error.bad-request",
+						message: problem.title ?? TEXT.errors.unknown,
+					},
+				],
+	};
+}
+
+/** `code` e chave de catalogo e `message` e o texto humano — mas o 401 troca os dois. */
+function humanText(entry: ApiError): string {
+	const looksLikeKey = (value: string) => /^[a-z0-9._-]+$/.test(value);
+
+	if (entry.message && !looksLikeKey(entry.message)) return entry.message;
+	if (entry.code && !looksLikeKey(entry.code)) return entry.code;
+	return entry.message || entry.code;
+}
+
+function notify(envelope: ApiResponse<unknown>, showWarnings: boolean) {
+	if (!toastHandler) return;
+
+	envelope.errors.forEach((e) =>
+		toastHandler?.({
+			type: "error",
+			title: TEXT.common.error,
+			description: humanText(e),
+		}),
+	);
+
+	if (!showWarnings) return;
+
+	envelope.warnings.forEach((w) =>
+		toastHandler?.({
+			type: "warning",
+			title: TEXT.common.warning,
+			description: humanText(w),
+		}),
+	);
 }
 
 export const httpClient = {
