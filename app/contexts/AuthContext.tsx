@@ -1,14 +1,21 @@
 import { SignInResponse, signIn, signUp } from "@services/auth";
-import { ApiResponse } from "@services/http-client";
-import { getToken, getUser, removeToken } from "@services/storage";
+import { ApiResponse, setSessionExpiredHandler } from "@services/http-client";
+import {
+	getRefreshToken,
+	getToken,
+	getUser,
+	removeToken,
+} from "@services/storage";
 import React, {
 	createContext,
 	ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import { InteractionManager } from "react-native";
 
 interface User {
 	name: string;
@@ -24,7 +31,7 @@ interface AuthContextType {
 		password: string,
 	) => Promise<ApiResponse<SignInResponse>>;
 	register: (
-		name: string,
+		username: string,
 		email: string,
 		password: string,
 	) => Promise<ApiResponse>;
@@ -41,14 +48,23 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 		checkAuth();
 	}, []);
 
+	// Sessao sem refresh token nao sobrevive ao primeiro 401. Montar as abas e
+	// derruba-las no frame seguinte quebra o react-native-screens, entao ela e
+	// descartada aqui e o login aparece direto.
 	async function checkAuth() {
 		setIsLoading(true);
-		const token = await getToken();
-		const storedUser = await getUser();
+		const [token, refreshToken, storedUser] = await Promise.all([
+			getToken(),
+			getRefreshToken(),
+			getUser(),
+		]);
 
-		if (token && storedUser) {
+		if (token && refreshToken && storedUser) {
 			setUser(storedUser);
+		} else if (token || storedUser) {
+			await removeToken();
 		}
+
 		setIsLoading(false);
 	}
 
@@ -71,12 +87,12 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 	}
 
 	async function register(
-		name: string,
+		username: string,
 		email: string,
 		password: string,
 	): Promise<ApiResponse<unknown>> {
 		setIsLoading(true);
-		const result = await signUp({ name, email, password });
+		const result = await signUp({ username, email, password });
 
 		if (result.isSuccess) {
 			const loginResult = await login(email, password);
@@ -87,10 +103,23 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 		return result;
 	}
 
-	async function logout() {
+	const logout = useCallback(async () => {
 		await removeToken();
 		setUser(null);
-	}
+	}, []);
+
+	// Um 401 que a renovacao de token nao resolveu derruba a sessao aqui, e a
+	// ausencia de usuario faz `app/index.tsx` voltar para o login. A troca so
+	// acontece com a navegacao parada: desmontar as telas nativas no meio de uma
+	// transicao fecha o app sem log nenhum. `runAfterInteractions` esta marcada
+	// como deprecada, mas e a unica que espera a transicao terminar.
+	useEffect(() => {
+		setSessionExpiredHandler(() => {
+			InteractionManager.runAfterInteractions(() => {
+				logout();
+			});
+		});
+	}, [logout]);
 
 	const value = useMemo(
 		() => ({
