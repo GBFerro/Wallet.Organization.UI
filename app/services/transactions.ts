@@ -1,28 +1,14 @@
 import {
-	CardEnum,
 	PaymentMethodEnum,
-	RecurrenceEnum,
 	Transaction,
 	TransactionEnum,
+	TransactionPayload,
 } from "@constants/api";
 import { type ApiResponse, httpClient } from "@services/http-client";
 import { logger } from "@utils/logger";
 
-export interface CreateTransactionRequest {
-	description: string;
-	date: string;
-	type: TransactionEnum;
-	payment: {
-		amount: number;
-		currency: string;
-		frequency: RecurrenceEnum;
-		installment?: number;
-		method: PaymentMethodEnum;
-		bankInfo: {
-			name: string;
-			card: CardEnum;
-		};
-	};
+export interface DeleteTransactionResponse {
+	deleted: boolean;
 }
 
 export async function fetchTransactions({
@@ -32,53 +18,71 @@ export async function fetchTransactions({
 	type?: TransactionEnum;
 	paymentType?: PaymentMethodEnum;
 }): Promise<ApiResponse<Transaction[]>> {
-	const params = {
-		type,
-		paymentType,
-	};
-	const result = await httpClient.get<any>(`/api/transactions`, {
+	const result = await httpClient.get<Transaction[]>("/api/transactions", {
 		requiresAuth: true,
-		params,
+		params: { type, paymentType },
+		showWarnings: false,
 	});
 
-	logger.info(`[Transactions] Found ${result.data.length} transactions`);
+	if (result.isSuccess) {
+		logger.info(`[Transactions] Found ${result.data.length} transactions`);
+	}
 
 	return result;
 }
 
-export async function createTransaction(
-	data: CreateTransactionRequest,
+export async function fetchTransactionById(
+	id: string,
 ): Promise<ApiResponse<Transaction>> {
-	const result = await httpClient.post<any>("/api/transactions", data, {
+	return await httpClient.get<Transaction>(`/api/transactions/${id}`, {
+		requiresAuth: true,
+	});
+}
+
+export async function createTransaction(
+	data: TransactionPayload,
+): Promise<ApiResponse<Transaction>> {
+	const result = await httpClient.post<Transaction>("/api/transactions", data, {
 		requiresAuth: true,
 	});
 
-	logger.info(
-		`[Transactions] Transaction ${result.data.id} created successfully`,
-	);
+	if (result.isSuccess) {
+		logger.info(`[Transactions] Transaction ${result.data.id} created`);
+	}
+
 	return result;
 }
 
 export async function updateTransaction(
 	id: string,
-	data: CreateTransactionRequest,
+	data: TransactionPayload,
 ): Promise<ApiResponse<Transaction>> {
-	const result = await httpClient.put<any>(`/api/transactions/${id}`, data, {
-		requiresAuth: true,
-	});
+	const result = await httpClient.put<Transaction>(
+		`/api/transactions/${id}`,
+		data,
+		{ requiresAuth: true },
+	);
 
-	logger.info(`[Transactions] Transaction ${id} updated successfully`);
+	if (result.isSuccess) {
+		logger.info(`[Transactions] Transaction ${id} updated`);
+	}
 
 	return result;
 }
 
 export async function deleteTransaction(
 	id: string,
-): Promise<ApiResponse<void>> {
-	const result = await httpClient.delete<void>(`/api/transactions/${id}`, {
-		requiresAuth: true,
-	});
+): Promise<ApiResponse<DeleteTransactionResponse>> {
+	const result = await httpClient.delete<DeleteTransactionResponse>(
+		`/api/transactions/${id}`,
+		{ requiresAuth: true },
+	);
 
-	logger.info(`[Transactions] Transaction ${id} deleted successfully`);
+	if (result.isSuccess) {
+		logger.info(
+			`[Transactions] Transaction ${id} deleted: ${result.data.deleted}`,
+		);
+	}
+
 	return result;
 }

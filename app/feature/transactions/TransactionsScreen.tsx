@@ -3,16 +3,15 @@ import { ScreenFlatList } from "@components/layout";
 import { EmptyState, LoadingState } from "@components/molecules";
 import { TransactionCard, TransactionForm } from "@components/organisms";
 import {
-	CardEnum,
-	RecurrenceEnum,
 	Transaction,
 	TransactionEnum,
+	TransactionPayload,
 } from "@constants/api";
+import { TEXT } from "@constants/text";
 import { Spacing } from "@constants/theme";
 import { useEvent } from "@contexts/EventContext";
 import { useTheme } from "@hooks/useTheme";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useHeaderHeight } from "@react-navigation/elements";
 import {
 	createTransaction,
 	deleteTransaction as deleteTransactionAPI,
@@ -34,7 +33,6 @@ export function TransactionsScreen({
 }: Readonly<{ type: TransactionEnum }>) {
 	const { theme } = useTheme();
 	const { emitTransactionChange } = useEvent();
-	const headerHeight = useHeaderHeight();
 	const tabBarHeight = useBottomTabBarHeight();
 
 	const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -51,15 +49,16 @@ export function TransactionsScreen({
 		const result = await fetchTransactions({ type });
 		if (!result.isSuccess) {
 			setTransactions([]);
+			setError(result.errors?.[0]?.message || TEXT.transactions.errorLoad);
 			return;
 		}
 		setTransactions(result.data);
-	}, []);
+	}, [type]);
 
 	useEffect(() => {
 		setLoading(true);
 		loadTransactions().finally(() => setLoading(false));
-	}, []);
+	}, [loadTransactions]);
 
 	const filteredTransactions = transactions.filter((t) =>
 		t.description?.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -84,59 +83,47 @@ export function TransactionsScreen({
 	const handleDeleteTransaction = (id: string) => {
 		const confirmDelete = async () => {
 			const result = await deleteTransactionAPI(id);
-			if (result.isSuccess) {
-				setTransactions((prev) => prev.filter((t) => t.id !== id));
+			if (!result.isSuccess || !result.data.deleted) {
+				setError(TEXT.transactions.deleteFailed);
+				return;
 			}
+			setTransactions((prev) => prev.filter((t) => t.id !== id));
+			emitTransactionChange();
 		};
 
 		if (Platform.OS === "web") {
-			if (globalThis.confirm("Deseja excluir esta transacao?")) {
+			if (globalThis.confirm(TEXT.transactions.deleteMessage)) {
 				confirmDelete();
 			}
 		} else {
-			Alert.alert("Excluir", "Deseja excluir esta transacao?", [
-				{ text: "Cancelar", style: "cancel" },
-				{ text: "Excluir", style: "destructive", onPress: confirmDelete },
-			]);
+			Alert.alert(
+				TEXT.transactions.deleteTitle,
+				TEXT.transactions.deleteMessage,
+				[
+					{ text: TEXT.common.cancel, style: "cancel" },
+					{
+						text: TEXT.common.delete,
+						style: "destructive",
+						onPress: confirmDelete,
+					},
+				],
+			);
 		}
 	};
 
-	const handleSaveTransaction = async (transaction: Transaction) => {
-		const payload = {
-			description: transaction.description || "",
-			date: transaction.date,
-			type: transaction.type,
-			payment: {
-				amount: transaction.payment.amount,
-				currency: transaction.payment.currency || "BRL",
-				frequency: transaction.payment.frequency || RecurrenceEnum.OneTime,
-				installment: transaction.payment.installment,
-				method: transaction.payment.method,
-				bankInfo: {
-					name: transaction.payment.bankInfo?.name || "Banco",
-					card: transaction.payment.bankInfo?.card || CardEnum.Physical,
-				},
-			},
-		};
+	const handleSaveTransaction = async (payload: TransactionPayload) => {
+		const result = editingTransaction
+			? await updateTransaction(editingTransaction.id, payload)
+			: await createTransaction(payload);
 
-		if (editingTransaction) {
-			const result = await updateTransaction(transaction.id, payload);
-			if (result.isSuccess && result.data) {
-				setTransactions((prev) =>
-					prev.map((t) => (t.id === transaction.id ? result.data : t)),
-				);
-				emitTransactionChange();
-			}
-		} else {
-			const result = await createTransaction(payload);
-			if (result.isSuccess && result.data) {
-				setTransactions((prev) => [result.data, ...prev]);
-				emitTransactionChange();
-			}
+		if (!result.isSuccess) {
+			return;
 		}
 
 		setIsFormVisible(false);
 		setEditingTransaction(null);
+		emitTransactionChange();
+		await loadTransactions();
 	};
 
 	const renderItem = ({ item }: { item: Transaction }) => (
@@ -164,15 +151,15 @@ export function TransactionsScreen({
 					variant="error"
 					icon="alert-circle"
 					message={error}
-					actionLabel="Tentar novamente"
+					actionLabel={TEXT.errors.tryAgain}
 					onAction={onRefresh}
 				/>
 			) : (
 				<EmptyState
 					variant="empty"
 					icon="inbox"
-					message="Nenhuma transacao encontrada"
-					actionLabel="Adicionar Transacao"
+					message={TEXT.transactions.emptyTitle}
+					actionLabel={TEXT.transactions.addButton}
 					onAction={handleAddTransaction}
 				/>
 			)}
@@ -180,7 +167,7 @@ export function TransactionsScreen({
 	);
 
 	if (loading) {
-		return <LoadingState message="Carregando transacoes..." />;
+		return <LoadingState message={TEXT.common.loading} />;
 	}
 
 	return (
@@ -189,7 +176,7 @@ export function TransactionsScreen({
 				style={[
 					styles.searchContainer,
 					{
-						paddingTop: headerHeight + Spacing.md,
+						paddingTop: Spacing.md,
 						backgroundColor: theme.backgroundRoot,
 					},
 				]}
@@ -197,7 +184,7 @@ export function TransactionsScreen({
 				<SearchBar
 					value={searchQuery}
 					onChangeText={setSearchQuery}
-					placeholder="Buscar transacoes..."
+					placeholder={TEXT.transactions.searchPlaceholder}
 				/>
 			</View>
 
@@ -214,10 +201,7 @@ export function TransactionsScreen({
 				}
 				ListEmptyComponent={renderEmpty}
 				ItemSeparatorComponent={() => <View style={{ height: Spacing.md }} />}
-				contentContainerStyle={[
-					styles.listContent,
-					{ paddingTop: headerHeight + 80 },
-				]}
+				contentContainerStyle={[styles.listContent, { paddingTop: 80 }]}
 			/>
 
 			<FAB

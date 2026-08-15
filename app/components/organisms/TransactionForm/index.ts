@@ -1,6 +1,10 @@
-// Re-exports from the full TransactionForm implementation
-// eslint-disable-next-line @typescript-eslint/no-todo
-// TODO: Split this into individual component files for better organization
-
-export type { TransactionFormProps } from "./TransactionForm.full";
-export { TransactionForm } from "./TransactionForm.full";
+export type { TransactionDraft } from "./rules";
+export {
+	allowsInstallment,
+	methodOptionsFor,
+	requiresBank,
+	toPayload,
+	validate,
+} from "./rules";
+export type { TransactionFormProps } from "./TransactionForm";
+export { TransactionForm } from "./TransactionForm";

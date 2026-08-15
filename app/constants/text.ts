@@ -37,9 +37,14 @@ export const TEXT = {
 		noAccount: "Nao tem uma conta?",
 		signIn: "Fazer Login",
 		signUp: "Cadastrar-se",
+		usernameLabel: "Nome de usuario",
+		usernamePlaceholder: "Como quer ser chamado",
+		passwordHint: "Minimo 8 caracteres, com maiuscula, minuscula e numero",
 		errorFillFields: "Preencha todos os campos",
 		errorPasswordMismatch: "As senhas nao conferem",
-		errorPasswordLength: "A senha deve ter pelo menos 6 caracteres",
+		errorPasswordLength: "A senha deve ter pelo menos 8 caracteres",
+		errorPasswordWeak:
+			"A senha precisa de ao menos uma letra maiuscula, uma minuscula e um numero",
 		errorLogin: "Erro ao fazer login",
 		errorRegister: "Erro ao criar conta",
 	},
@@ -49,13 +54,11 @@ export const TEXT = {
 		defaultUser: "Usuario",
 		defaultEmail: "usuario@email.com",
 
-		// Sections
 		sectionAccount: "CONTA",
 		sectionPreferences: "PREFERENCIAS",
 		sectionSupport: "SUPORTE",
 		sectionSession: "SESSAO",
 
-		// Account Items
 		profile: "Perfil",
 		profileSubtitle: "Editar informacoes pessoais",
 		notifications: "Notificacoes",
@@ -63,7 +66,6 @@ export const TEXT = {
 		security: "Seguranca",
 		securitySubtitle: "Senha e autenticacao",
 
-		// Preferences
 		currency: "Moeda",
 		currencySubtitle: "BRL - Real Brasileiro",
 		darkMode: "Modo Escuro",
@@ -72,7 +74,6 @@ export const TEXT = {
 		language: "Idioma",
 		languageSubtitle: "Portugues (Brasil)",
 
-		// Support
 		help: "Ajuda",
 		helpSubtitle: "Perguntas frequentes",
 		contact: "Contato",
@@ -80,11 +81,9 @@ export const TEXT = {
 		terms: "Termos de Uso",
 		privacy: "Politica de Privacidade",
 
-		// Session
 		logout: "Sair",
 		deleteAccount: "Excluir Conta",
 
-		// Alerts
 		logoutConfirmTitle: "Sair",
 		logoutConfirmMessage: "Deseja sair da sua conta?",
 		deleteConfirmTitle: "Excluir Conta",
@@ -102,6 +101,33 @@ export const TEXT = {
 		emptyTitle: "Nenhuma transacao encontrada",
 		emptyMessage: "Adicione sua primeira transacao",
 		addButton: "Nova Transacao",
+		deleteTitle: "Excluir",
+		deleteMessage: "Deseja excluir esta transacao?",
+		deleteFailed: "Nao foi possivel excluir a transacao",
+	},
+
+	form: {
+		newTitle: "Nova Transacao",
+		editTitle: "Editar Transacao",
+		type: "Tipo",
+		date: "Data",
+		description: "Descricao",
+		descriptionPlaceholder: "Ex: Salario, Aluguel...",
+		amount: "Valor (R$)",
+		amountPlaceholder: "0,00",
+		method: "Metodo de pagamento",
+		frequency: "Frequencia",
+		installment: "Parcelas",
+		installmentPlaceholder: "Ex: 12",
+		installmentHint: "Deixe vazio para nao parcelar (minimo 2 parcelas)",
+		bank: "Banco",
+		bankPlaceholder: "Ex: Nubank",
+		card: "Tipo de cartao",
+		datePickerDone: "Concluir",
+		errorDescriptionRequired: "Informe uma descricao",
+		errorAmountRequired: "Informe um valor maior que zero",
+		errorBankRequired: "Informe o banco do cartao",
+		errorInstallmentInvalid: "O numero de parcelas deve ser maior que uma",
 	},
 
 	forecast: {
@@ -114,12 +140,14 @@ export const TEXT = {
 		totalExpense: "Despesa Total",
 		netBalance: "Saldo Líquido",
 		currentBalance: "Saldo Atual",
+		finalBalance: "Saldo Final",
 		selectPeriod: "Selecionar Período",
 	},
 
 	common: {
 		loading: "Carregando...",
 		error: "Erro",
+		warning: "Atencao",
 		success: "Sucesso",
 		save: "Salvar",
 		cancel: "Cancelar",
@@ -139,6 +167,7 @@ export const TEXT = {
 		unknown: "Erro desconhecido",
 		timeout: "Tempo de espera excedido",
 		unauthorized: "Nao autorizado",
+		sessionExpired: "Sua sessao expirou. Faca login novamente.",
 		notFound: "Nao encontrado",
 		serverError: "Erro no servidor",
 		tryAgain: "Tente novamente",

@@ -3,6 +3,7 @@ import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useAuth } from "@contexts/AuthContext";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import React, { useState } from "react";
 import {
@@ -24,6 +25,7 @@ interface LoginScreenProps {
 
 export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 	const { theme } = useTheme();
+	const loginPress = usePressed();
 	const { login, isLoading } = useAuth();
 	const insets = useSafeAreaInsets();
 
@@ -40,7 +42,7 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 
 		const result = await login(email, password);
 		if (!result?.isSuccess) {
-			setError(result.errors[0].message);
+			setError(result.errors?.[0]?.message || TEXT.auth.errorLogin);
 		}
 	}
 
@@ -146,11 +148,12 @@ export function LoginScreen({ onRegister }: Readonly<LoginScreenProps>) {
 						</View>
 
 						<Pressable
-							style={({ pressed }) => [
+							{...loginPress.pressHandlers}
+							style={[
 								styles.loginButton,
 								{
 									backgroundColor: theme.primary,
-									opacity: pressed || isLoading ? 0.8 : 1,
+									opacity: loginPress.pressed || isLoading ? 0.8 : 1,
 								},
 							]}
 							onPress={handleLogin}

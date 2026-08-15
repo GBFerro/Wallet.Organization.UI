@@ -2,6 +2,7 @@ import { ThemedText } from "@components/atoms/ThemedText";
 import { Effects, Spacing } from "@constants/theme";
 import type { Toast as ToastData } from "@contexts/ToastContext";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { cn } from "@utils/cn";
 import React, { useEffect } from "react";
@@ -12,6 +13,7 @@ import Animated, {
 	withSpring,
 	withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 export interface ToastProps extends Omit<ViewProps, "style"> {
 	toast: ToastData;
@@ -33,14 +35,16 @@ export function Toast({
 	...props
 }: Readonly<ToastProps>) {
 	const { theme } = useTheme();
+	const { pressed, pressHandlers } = usePressed();
 	const translateY = useSharedValue(-100);
 	const opacity = useSharedValue(0);
 
 	const handleDismiss = React.useCallback(() => {
 		translateY.value = withTiming(-100, { duration: 200 });
 		opacity.value = withTiming(0, { duration: 200 }, (finished) => {
+			"worklet";
 			if (finished) {
-				onDismiss(toast.id);
+				scheduleOnRN(onDismiss, toast.id);
 			}
 		});
 	}, [translateY, opacity, toast.id, onDismiss]);
@@ -139,11 +143,9 @@ export function Toast({
 					) : null}
 				</View>
 				<Pressable
+					{...pressHandlers}
 					onPress={handleDismiss}
-					style={({ pressed }) => [
-						styles.closeButton,
-						{ opacity: pressed ? 0.5 : 1 },
-					]}
+					style={[styles.closeButton, { opacity: pressed ? 0.5 : 1 }]}
 				>
 					<Feather name="x" size={18} color={theme.textSecondary} />
 				</Pressable>

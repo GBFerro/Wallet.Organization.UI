@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/atoms";
 import { Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { formatCurrency } from "@utils/format";
 import React, { useEffect } from "react";
@@ -14,6 +15,7 @@ import { EASE_IN_OUT, useMonthCardContext } from "./MonthCardContext";
 
 export function MonthCardHeader() {
 	const { theme } = useTheme();
+	const { pressed, pressHandlers } = usePressed();
 	const { projections, monthName, year, expanded, toggleExpand } =
 		useMonthCardContext();
 
@@ -22,8 +24,7 @@ export function MonthCardHeader() {
 		(sum, p) => sum + p.totalExpenses,
 		0,
 	);
-	const finalBalance =
-		projections.length > 0 ? projections.at(-1).currentAmount : 0;
+	const finalBalance = projections.at(-1)?.closingBalance ?? 0;
 
 	const rotation = useSharedValue(0);
 
@@ -40,23 +41,39 @@ export function MonthCardHeader() {
 
 	return (
 		<Pressable
+			{...pressHandlers}
 			onPress={toggleExpand}
-			style={({ pressed }) => [styles.header, { opacity: pressed ? 0.7 : 1 }]}
+			style={[styles.header, { opacity: pressed ? 0.7 : 1 }]}
 		>
 			<View style={styles.headerLeft}>
-				<ThemedText type="label" style={{ color: theme.text }}>
+				<ThemedText
+					type="label"
+					numberOfLines={1}
+					maxFontSizeMultiplier={1.2}
+					style={{ color: theme.text }}
+				>
 					{monthName} {year}
 				</ThemedText>
 				<View style={styles.headerStats}>
 					<View style={styles.statItem}>
 						<Feather name="arrow-up-circle" size={14} color={theme.income} />
-						<ThemedText type="caption" style={{ color: theme.income }}>
+						<ThemedText
+							type="caption"
+							numberOfLines={1}
+							maxFontSizeMultiplier={1.2}
+							style={{ color: theme.income }}
+						>
 							{formatCurrency(totalIncome)}
 						</ThemedText>
 					</View>
 					<View style={styles.statItem}>
 						<Feather name="arrow-down-circle" size={14} color={theme.expense} />
-						<ThemedText type="caption" style={{ color: theme.expense }}>
+						<ThemedText
+							type="caption"
+							numberOfLines={1}
+							maxFontSizeMultiplier={1.2}
+							style={{ color: theme.expense }}
+						>
 							{formatCurrency(totalExpenses)}
 						</ThemedText>
 					</View>
@@ -65,6 +82,8 @@ export function MonthCardHeader() {
 			<View style={styles.headerRight}>
 				<ThemedText
 					type="body"
+					numberOfLines={1}
+					maxFontSizeMultiplier={1.2}
 					style={{
 						fontWeight: "600" as const,
 						color: finalBalance >= 0 ? theme.income : theme.expense,
@@ -86,22 +105,28 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		padding: Spacing.lg,
+		gap: Spacing.sm,
 	},
 	headerLeft: {
 		flex: 1,
+		minWidth: 0,
 		gap: Spacing.xs,
 	},
 	headerStats: {
 		flexDirection: "row",
-		gap: Spacing.lg,
+		flexWrap: "wrap",
+		columnGap: Spacing.lg,
+		rowGap: Spacing.xs,
 	},
 	statItem: {
 		flexDirection: "row",
+		flexShrink: 0,
 		alignItems: "center",
 		gap: Spacing.xs,
 	},
 	headerRight: {
 		flexDirection: "row",
+		flexShrink: 0,
 		alignItems: "center",
 		gap: Spacing.sm,
 	},

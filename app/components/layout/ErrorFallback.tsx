@@ -2,6 +2,7 @@ import { ThemedText } from "@components/atoms/ThemedText";
 import { ThemedView } from "@components/atoms/ThemedView";
 import { BorderRadius, Fonts, Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
@@ -25,6 +26,9 @@ export function ErrorFallback({
 }: Readonly<ErrorFallbackProps>) {
 	const { theme } = useTheme();
 	const [isModalVisible, setIsModalVisible] = useState(false);
+	const detailsPress = usePressed();
+	const restartPress = usePressed();
+	const closePress = usePressed();
 
 	const handleRestart = async () => {
 		try {
@@ -47,12 +51,13 @@ export function ErrorFallback({
 		<ThemedView style={styles.container}>
 			{__DEV__ ? (
 				<Pressable
+					{...detailsPress.pressHandlers}
 					onPress={() => setIsModalVisible(true)}
-					style={({ pressed }) => [
+					style={[
 						styles.topButton,
 						{
 							backgroundColor: theme.backgroundDefault,
-							opacity: pressed ? 0.8 : 1,
+							opacity: detailsPress.pressed ? 0.8 : 1,
 						},
 					]}
 				>
@@ -71,13 +76,14 @@ export function ErrorFallback({
 				</ThemedText>
 
 				<Pressable
+					{...restartPress.pressHandlers}
 					onPress={handleRestart}
-					style={({ pressed }) => [
+					style={[
 						styles.button,
 						{
 							backgroundColor: theme.link,
-							opacity: pressed ? 0.9 : 1,
-							transform: [{ scale: pressed ? 0.98 : 1 }],
+							opacity: restartPress.pressed ? 0.9 : 1,
+							transform: [{ scale: restartPress.pressed ? 0.98 : 1 }],
 						},
 					]}
 				>
@@ -104,10 +110,11 @@ export function ErrorFallback({
 									Error Details
 								</ThemedText>
 								<Pressable
+									{...closePress.pressHandlers}
 									onPress={() => setIsModalVisible(false)}
-									style={({ pressed }) => [
+									style={[
 										styles.closeButton,
-										{ opacity: pressed ? 0.6 : 1 },
+										{ opacity: closePress.pressed ? 0.6 : 1 },
 									]}
 								>
 									<Feather name="x" size={24} color={theme.text} />

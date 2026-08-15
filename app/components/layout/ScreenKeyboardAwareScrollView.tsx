@@ -18,10 +18,6 @@ export function ScreenKeyboardAwareScrollView({
 }: Readonly<ScreenKeyboardAwareScrollViewProps>) {
 	const { theme } = useTheme();
 
-	/**
-	 * KeyboardAvoidingView with ScrollView for keyboard handling.
-	 * Web doesn't need keyboard avoidance, so falls back to ScreenScrollView.
-	 */
 	if (Platform.OS === "web") {
 		return (
 			<ScreenScrollView

@@ -1,8 +1,3 @@
-/**
- * Logger utility for development and production environments
- * In production, logs are disabled by default
- */
-
 const isDevelopment = __DEV__;
 
 export const logger = {
