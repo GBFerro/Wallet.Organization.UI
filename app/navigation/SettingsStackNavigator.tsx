@@ -10,12 +10,14 @@ export type SettingsStackParamList = {
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();
 
-export default function SettingsStackNavigator({ headerTitle }) {
+export default function SettingsStackNavigator({
+	headerTitle,
+}: Readonly<{ headerTitle: string }>) {
 	const { theme, isDark } = useTheme();
 
 	return (
 		<Stack.Navigator
-			id="SettingsScreen"
+			id={undefined}
 			screenOptions={{
 				...getCommonScreenOptions({ theme, isDark }),
 			}}

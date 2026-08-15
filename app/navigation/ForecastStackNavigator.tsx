@@ -10,12 +10,14 @@ export type ForecastStackParamList = {
 
 const Stack = createNativeStackNavigator<ForecastStackParamList>();
 
-export default function ForecastStackNavigator({ headerTitle }) {
+export default function ForecastStackNavigator({
+	headerTitle,
+}: Readonly<{ headerTitle: string }>) {
 	const { theme, isDark } = useTheme();
 
 	return (
 		<Stack.Navigator
-			id="ForecastScreen"
+			id={undefined}
 			screenOptions={{
 				...getCommonScreenOptions({ theme, isDark }),
 			}}

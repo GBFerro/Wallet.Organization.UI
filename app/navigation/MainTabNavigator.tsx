@@ -3,9 +3,7 @@ import { TEXT } from "@constants/text";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@hooks/useTheme";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { BlurView } from "expo-blur";
-import React from "react";
-import { Platform, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import ForecastStackNavigator from "./ForecastStackNavigator";
 import SettingsStackNavigator from "./SettingsStackNavigator";
 import TransactionsStackNavigator from "./TransactionsStackNavigator";
@@ -18,6 +16,34 @@ export type MainTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+function ForecastTabStack() {
+	return <ForecastStackNavigator headerTitle={TEXT.header.forecast} />;
+}
+
+function ExpensesTabStack() {
+	return (
+		<TransactionsStackNavigator
+			name="ExpensesScreen"
+			headerTitle={TEXT.header.transactions.expenses}
+			type={TransactionEnum.Expense}
+		/>
+	);
+}
+
+function IncomesTabStack() {
+	return (
+		<TransactionsStackNavigator
+			name="IncomesScreen"
+			headerTitle={TEXT.header.transactions.incomes}
+			type={TransactionEnum.Income}
+		/>
+	);
+}
+
+function SettingsTabStack() {
+	return <SettingsStackNavigator headerTitle={TEXT.header.settings} />;
+}
 
 interface TabIconProps {
 	color: string;
@@ -40,52 +66,35 @@ function SettingsTabIcon({ color, size }: Readonly<TabIconProps>) {
 	return <Feather name="settings" size={size} color={color} />;
 }
 
-interface TabBarBackgroundProps {
-	isDark: boolean;
-}
-
-function TabBarBackground({ isDark }: Readonly<TabBarBackgroundProps>) {
-	return (
-		<BlurView
-			intensity={70}
-			tint={isDark ? "dark" : "light"}
-			style={StyleSheet.absoluteFill}
-		/>
-	);
-}
-
-function createTabBarBackground(isDark: boolean) {
-	return () => <TabBarBackground isDark={isDark} />;
+function createTabBarBackground(backgroundColor: string) {
+	return function TabBarBackground() {
+		return <View style={[StyleSheet.absoluteFill, { backgroundColor }]} />;
+	};
 }
 
 export default function MainTabNavigator() {
-	const { theme, isDark } = useTheme();
+	const { theme } = useTheme();
 
 	return (
 		<Tab.Navigator
-			id="1"
+			id={undefined}
 			initialRouteName="ForecastTab"
 			screenOptions={{
 				tabBarActiveTintColor: theme.tabIconSelected,
 				tabBarInactiveTintColor: theme.tabIconDefault,
 				tabBarStyle: {
 					position: "absolute",
-					backgroundColor: Platform.select({
-						ios: "transparent",
-						android: theme.backgroundRoot,
-					}),
+					backgroundColor: theme.backgroundRoot,
 					borderTopWidth: 0,
 					elevation: 0,
 				},
-				tabBarBackground: createTabBarBackground(isDark),
+				tabBarBackground: createTabBarBackground(theme.backgroundRoot),
 				headerShown: false,
 			}}
 		>
 			<Tab.Screen
 				name="ForecastTab"
-				component={() =>
-					ForecastStackNavigator({ headerTitle: TEXT.header.forecast })
-				}
+				component={ForecastTabStack}
 				options={{
 					title: TEXT.nav.forecast,
 					tabBarIcon: ForecastTabIcon,
@@ -93,13 +102,7 @@ export default function MainTabNavigator() {
 			/>
 			<Tab.Screen
 				name="ExpensesTab"
-				component={() =>
-					TransactionsStackNavigator({
-						name: "ExpensesScreen",
-						headerTitle: TEXT.header.transactions.expenses,
-						type: TransactionEnum.Expense,
-					})
-				}
+				component={ExpensesTabStack}
 				options={{
 					title: TEXT.nav.transactions.expenses,
 					tabBarIcon: ExpensesTabIcon,
@@ -107,13 +110,7 @@ export default function MainTabNavigator() {
 			/>
 			<Tab.Screen
 				name="IncomesTab"
-				component={() =>
-					TransactionsStackNavigator({
-						name: "IncomesScreen",
-						headerTitle: TEXT.header.transactions.incomes,
-						type: TransactionEnum.Income,
-					})
-				}
+				component={IncomesTabStack}
 				options={{
 					title: TEXT.nav.transactions.incomes,
 					tabBarIcon: IncomesTabIcon,
@@ -121,11 +118,7 @@ export default function MainTabNavigator() {
 			/>
 			<Tab.Screen
 				name="SettingsTab"
-				component={() =>
-					SettingsStackNavigator({
-						headerTitle: TEXT.header.settings,
-					})
-				}
+				component={SettingsTabStack}
 				options={{
 					title: TEXT.nav.settings,
 					tabBarIcon: SettingsTabIcon,
