@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
 		zIndex: 999999,
 	},
 	toastWrapper: {
-		position: "fixed",
+		position: "absolute",
 		bottom: Spacing.fabSize,
 		left: 0,
 		right: 0,

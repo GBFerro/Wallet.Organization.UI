@@ -332,33 +332,36 @@ export function MonthCardExamples() {
 		projections: [
 			{
 				date: "2026-01-15",
+				openingBalance: 7500,
 				income: 5000,
 				totalExpenses: 2500,
-				cardExpenses: 1500,
-				debitExpenses: 800,
+				creditCardExpenses: 1500,
+				cashEquivalentExpenses: 800,
 				otherExpenses: 200,
-				net: 2500,
-				currentAmount: 10000,
+				netChange: 2500,
+				closingBalance: 10000,
 			},
 			{
 				date: "2026-01-20",
+				openingBalance: 10000,
 				income: 0,
 				totalExpenses: 500,
-				cardExpenses: 300,
-				debitExpenses: 200,
+				creditCardExpenses: 300,
+				cashEquivalentExpenses: 200,
 				otherExpenses: 0,
-				net: -500,
-				currentAmount: 9500,
+				netChange: -500,
+				closingBalance: 9500,
 			},
 			{
 				date: "2026-01-25",
+				openingBalance: 9500,
 				income: 1000,
 				totalExpenses: 300,
-				cardExpenses: 200,
-				debitExpenses: 100,
+				creditCardExpenses: 200,
+				cashEquivalentExpenses: 100,
 				otherExpenses: 0,
-				net: 700,
-				currentAmount: 10200,
+				netChange: 700,
+				closingBalance: 10200,
 			},
 		],
 		totalIncome: 6000,
@@ -369,14 +372,24 @@ export function MonthCardExamples() {
 	return (
 		<View style={{ gap: 16 }}>
 			{/* Default Month Card */}
-			<MonthCard monthData={monthData}>
+			<MonthCard
+				projections={monthData.projections}
+				monthName={monthData.month}
+				year={monthData.year}
+				monthIndex={monthData.monthIndex}
+			>
 				<MonthCard.Header />
 				<MonthCard.Calendar />
 				<MonthCard.DayDetail />
 			</MonthCard>
 
 			{/* Month Card with Custom Content */}
-			<MonthCard monthData={monthData}>
+			<MonthCard
+				projections={monthData.projections}
+				monthName={monthData.month}
+				year={monthData.year}
+				monthIndex={monthData.monthIndex}
+			>
 				<MonthCard.Header />
 				{/* Add custom content between header and calendar */}
 				<View
@@ -391,7 +404,12 @@ export function MonthCardExamples() {
 			</MonthCard>
 
 			{/* Month Card - Header Only (collapsed by default) */}
-			<MonthCard monthData={monthData}>
+			<MonthCard
+				projections={monthData.projections}
+				monthName={monthData.month}
+				year={monthData.year}
+				monthIndex={monthData.monthIndex}
+			>
 				<MonthCard.Header />
 				<MonthCard.Calendar />
 				<MonthCard.DayDetail />
@@ -485,7 +503,12 @@ export function DashboardExample() {
 				<ThemedText type="subheading" style={{ marginBottom: 12 }}>
 					Visão Mensal
 				</ThemedText>
-				<MonthCard monthData={monthData}>
+				<MonthCard
+					projections={monthData.projections}
+					monthName={monthData.month}
+					year={monthData.year}
+					monthIndex={monthData.monthIndex}
+				>
 					<MonthCard.Header />
 					<MonthCard.Calendar />
 					<MonthCard.DayDetail />
