@@ -1,6 +1,7 @@
 import { ThemedText, ThemedView } from "@components/atoms";
 import { SummaryCard } from "@components/molecules";
-import { MonthCard } from "@components/organisms";
+
+import { MonthCard } from "@components/organisms/MonthCard";
 import {
 	ForecastResponse,
 	PERIOD_LABELS,
@@ -11,16 +12,14 @@ import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useEvent } from "@contexts/EventContext";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { fetchForecast } from "@services/forecast";
-import { formatCurrency } from "@utils/format";
+import { formatCurrency, formatMonthName, parseCivilDate } from "@utils/format";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
-	FlatList,
-	Modal,
 	Pressable,
 	RefreshControl,
 	ScrollView,
@@ -40,29 +39,17 @@ interface MonthData {
 
 const groupByMonth = (projections: Projection[]): MonthData[] => {
 	const monthMap = new Map<string, Projection[]>();
-	const monthNames = [
-		"Janeiro",
-		"Fevereiro",
-		"Marco",
-		"Abril",
-		"Maio",
-		"Junho",
-		"Julho",
-		"Agosto",
-		"Setembro",
-		"Outubro",
-		"Novembro",
-		"Dezembro",
-	];
 
 	projections.forEach((projection) => {
-		const date = new Date(projection.date);
-		const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+		const date = parseCivilDate(projection.date);
+		const key = `${date.getFullYear()}-${date.getMonth()}`;
 
-		if (!monthMap.has(key)) {
-			monthMap.set(key, []);
+		const bucket = monthMap.get(key);
+		if (bucket) {
+			bucket.push(projection);
+		} else {
+			monthMap.set(key, [projection]);
 		}
-		monthMap.get(key).push(projection);
 	});
 
 	const result: MonthData[] = [];
@@ -74,10 +61,10 @@ const groupByMonth = (projections: Projection[]): MonthData[] => {
 
 		const totalIncome = projs.reduce((sum, p) => sum + p.income, 0);
 		const totalExpenses = projs.reduce((sum, p) => sum + p.totalExpenses, 0);
-		const finalBalance = projs.at(-1)?.currentAmount || 0;
+		const finalBalance = projs.at(-1)?.closingBalance ?? 0;
 
 		result.push({
-			month: monthNames[monthIndex],
+			month: formatMonthName(year, monthIndex),
 			year,
 			monthIndex,
 			projections: projs,
@@ -93,36 +80,40 @@ const groupByMonth = (projections: Projection[]): MonthData[] => {
 	});
 };
 
+const periodOptions = [
+	PeriodEnum.RestOfQuarter,
+	PeriodEnum.RestOfSemester,
+	PeriodEnum.RestOfYear,
+	PeriodEnum.NextThreeMonths,
+	PeriodEnum.NextSixMonths,
+	PeriodEnum.NextTwelveMonths,
+];
+
 export function ForecastScreen() {
 	const { theme } = useTheme();
 	const { onTransactionChange } = useEvent();
-	const headerHeight = useHeaderHeight();
 	const tabBarHeight = useBottomTabBarHeight();
+	const retryPress = usePressed();
 
 	const [selectedPeriod, setSelectedPeriod] = useState<PeriodEnum>(
-		PeriodEnum.ThisYear,
+		PeriodEnum.RestOfYear,
 	);
-	const [isPeriodModalVisible, setIsPeriodModalVisible] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [data, setData] = useState<ForecastResponse | null>(null);
 
 	const loadData = useCallback(async (period: PeriodEnum) => {
-		try {
-			setError(null);
-			const result = await fetchForecast(period);
-			if (result?.data?.projections && result.data?.projections.length > 0) {
-				setData(result.data);
-			} else {
-				setData(null);
-				setError("Nenhuma projecao financeira encontrada para este periodo.");
-			}
-		} catch (err) {
-			console.error("Error loading forecast:", err);
+		setError(null);
+		const result = await fetchForecast(period);
+
+		if (!result.isSuccess) {
 			setData(null);
-			setError("Erro ao carregar previsoes. Tente novamente.");
+			setError(result.errors?.[0]?.message || TEXT.forecast.errorLoad);
+			return;
 		}
+
+		setData(result.data);
 	}, []);
 
 	useEffect(() => {
@@ -142,24 +133,27 @@ export function ForecastScreen() {
 		return groupByMonth(data.projections);
 	}, [data]);
 
+	// openingBalance/closingBalance do periodo ja vem prontos; so os totais de
+	// receita e despesa precisam ser somados das projecoes.
 	const totalSummary = useMemo(() => {
-		if (!data)
+		if (!data) {
 			return {
 				totalIncome: 0,
 				totalExpenses: 0,
-				netBalance: 0,
-				currentBalance: 0,
+				openingBalance: 0,
+				closingBalance: 0,
 			};
+		}
 
-		const totalIncome = data.projections.reduce((sum, p) => sum + p.income, 0);
-		const totalExpenses = data.projections.reduce(
-			(sum, p) => sum + p.totalExpenses,
-			0,
-		);
-		const netBalance = totalIncome - totalExpenses;
-		const currentBalance = data.projections[-1]?.currentAmount || 0;
-
-		return { totalIncome, totalExpenses, netBalance, currentBalance };
+		return {
+			totalIncome: data.projections.reduce((sum, p) => sum + p.income, 0),
+			totalExpenses: data.projections.reduce(
+				(sum, p) => sum + p.totalExpenses,
+				0,
+			),
+			openingBalance: data.openingBalance,
+			closingBalance: data.closingBalance,
+		};
 	}, [data]);
 
 	const onRefresh = useCallback(async () => {
@@ -168,15 +162,103 @@ export function ForecastScreen() {
 		setRefreshing(false);
 	}, [selectedPeriod, loadData]);
 
-	const handlePeriodSelect = async (period: PeriodEnum) => {
-		setSelectedPeriod(period);
-		setIsPeriodModalVisible(false);
-		setLoading(true);
-		await loadData(period);
-		setLoading(false);
-	};
+	const renderPeriodSelector = () => (
+		<View style={styles.periodSection}>
+			<ThemedText
+				type="caption"
+				style={{ color: theme.textSecondary, marginBottom: Spacing.sm }}
+			>
+				{TEXT.forecast.selectPeriod}
+			</ThemedText>
+			<ScrollView
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={styles.periodOptions}
+			>
+				{periodOptions.map((period) => (
+					<Pressable
+						key={period}
+						accessibilityRole="button"
+						accessibilityLabel={PERIOD_LABELS[period]}
+						onPress={() => setSelectedPeriod(period)}
+						style={[
+							styles.periodChip,
+							{
+								backgroundColor:
+									selectedPeriod === period
+										? theme.primary
+										: theme.backgroundDefault,
+								borderColor:
+									selectedPeriod === period ? theme.primary : theme.border,
+							},
+						]}
+					>
+						<ThemedText
+							type="caption"
+							style={{
+								color: selectedPeriod === period ? "#FFFFFF" : theme.text,
+							}}
+						>
+							{PERIOD_LABELS[period]}
+						</ThemedText>
+					</Pressable>
+				))}
+			</ScrollView>
+		</View>
+	);
+
+	const renderSummary = () => (
+		<ScrollView
+			horizontal
+			showsHorizontalScrollIndicator={false}
+			contentContainerStyle={styles.summaryRow}
+		>
+			<SummaryCard>
+				<SummaryCard.Icon name="trending-up" color={theme.income} />
+				<SummaryCard.Title>{TEXT.forecast.totalIncome}</SummaryCard.Title>
+				<SummaryCard.Value>
+					{formatCurrency(totalSummary.totalIncome)}
+				</SummaryCard.Value>
+			</SummaryCard>
+			<SummaryCard>
+				<SummaryCard.Icon name="trending-down" color={theme.expense} />
+				<SummaryCard.Title>{TEXT.forecast.totalExpense}</SummaryCard.Title>
+				<SummaryCard.Value>
+					{formatCurrency(totalSummary.totalExpenses)}
+				</SummaryCard.Value>
+			</SummaryCard>
+			<SummaryCard>
+				<SummaryCard.Icon name="dollar-sign" color={theme.primary} />
+				<SummaryCard.Title>{TEXT.forecast.currentBalance}</SummaryCard.Title>
+				<SummaryCard.Value>
+					{formatCurrency(totalSummary.openingBalance)}
+				</SummaryCard.Value>
+			</SummaryCard>
+			<SummaryCard>
+				<SummaryCard.Icon name="flag" color={theme.link} />
+				<SummaryCard.Title>{TEXT.forecast.finalBalance}</SummaryCard.Title>
+				<SummaryCard.Value>
+					{formatCurrency(totalSummary.closingBalance)}
+				</SummaryCard.Value>
+			</SummaryCard>
+		</ScrollView>
+	);
 
 	const renderContent = () => {
+		if (loading) {
+			return (
+				<View style={styles.loadingContainer}>
+					<ActivityIndicator size="large" color={theme.primary} />
+					<ThemedText
+						type="body"
+						style={{ marginTop: Spacing.lg, color: theme.textSecondary }}
+					>
+						{TEXT.common.loading}
+					</ThemedText>
+				</View>
+			);
+		}
+
 		if (error) {
 			return (
 				<View
@@ -197,9 +279,13 @@ export function ForecastScreen() {
 						{error}
 					</ThemedText>
 					<Pressable
-						style={({ pressed }) => [
+						{...retryPress.pressHandlers}
+						style={[
 							styles.retryButton,
-							{ backgroundColor: theme.primary, opacity: pressed ? 0.8 : 1 },
+							{
+								backgroundColor: theme.primary,
+								opacity: retryPress.pressed ? 0.8 : 1,
+							},
 						]}
 						onPress={onRefresh}
 					>
@@ -249,24 +335,6 @@ export function ForecastScreen() {
 		));
 	};
 
-	const periodOptions = Object.values(PeriodEnum).filter(
-		(p) => p !== PeriodEnum.None,
-	);
-
-	if (loading) {
-		return (
-			<ThemedView style={styles.loadingContainer}>
-				<ActivityIndicator size="large" color={theme.primary} />
-				<ThemedText
-					type="body"
-					style={{ marginTop: Spacing.lg, color: theme.textSecondary }}
-				>
-					{TEXT.common.loading}
-				</ThemedText>
-			</ThemedView>
-		);
-	}
-
 	return (
 		<ThemedView style={styles.container}>
 			<ScrollView
@@ -274,7 +342,7 @@ export function ForecastScreen() {
 				contentContainerStyle={[
 					styles.content,
 					{
-						paddingTop: headerHeight + Spacing.xl,
+						paddingTop: Spacing.xl,
 						paddingBottom: tabBarHeight + Spacing.xl,
 					},
 				]}
@@ -287,125 +355,10 @@ export function ForecastScreen() {
 				}
 				showsVerticalScrollIndicator={false}
 			>
-				<View style={styles.periodRow}>
-					<ThemedText type="label"> {TEXT.forecast.period}</ThemedText>
-					<Pressable
-						style={({ pressed }) => [
-							styles.periodButton,
-							{
-								backgroundColor: theme.backgroundDefault,
-								opacity: pressed ? 0.7 : 1,
-							},
-						]}
-						onPress={() => setIsPeriodModalVisible(true)}
-					>
-						<ThemedText type="body">{PERIOD_LABELS[selectedPeriod]}</ThemedText>
-						<Feather name="chevron-down" size={20} color={theme.text} />
-					</Pressable>
-				</View>
-
-				<ScrollView
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					style={styles.summaryScroll}
-					contentContainerStyle={styles.summaryContainer}
-				>
-					<SummaryCard>
-						<SummaryCard.Icon name="trending-up" color={theme.income} />
-						<SummaryCard.Title> {TEXT.forecast.totalIncome}</SummaryCard.Title>
-						<SummaryCard.Value>
-							{formatCurrency(totalSummary.totalIncome)}
-						</SummaryCard.Value>
-					</SummaryCard>
-
-					<SummaryCard>
-						<SummaryCard.Icon name="trending-down" color={theme.expense} />
-						<SummaryCard.Title> {TEXT.forecast.totalExpense}</SummaryCard.Title>
-						<SummaryCard.Value>
-							{formatCurrency(totalSummary.totalExpenses)}
-						</SummaryCard.Value>
-					</SummaryCard>
-
-					<SummaryCard>
-						<SummaryCard.Icon
-							name="activity"
-							color={
-								totalSummary.netBalance >= 0 ? theme.income : theme.expense
-							}
-						/>
-						<SummaryCard.Title> {TEXT.forecast.netBalance}</SummaryCard.Title>
-						<SummaryCard.Value>
-							{formatCurrency(totalSummary.netBalance)}
-						</SummaryCard.Value>
-					</SummaryCard>
-
-					<SummaryCard>
-						<SummaryCard.Icon name="dollar-sign" color={theme.primary} />
-						<SummaryCard.Title>
-							{TEXT.forecast.currentBalance}
-						</SummaryCard.Title>
-						<SummaryCard.Value>
-							{formatCurrency(totalSummary.currentBalance)}
-						</SummaryCard.Value>
-					</SummaryCard>
-				</ScrollView>
-
-				<ThemedText type="label" style={styles.sectionTitle}>
-					{TEXT.forecast.header}
-				</ThemedText>
-
+				{renderPeriodSelector()}
+				{data && renderSummary()}
 				{renderContent()}
 			</ScrollView>
-
-			<Modal
-				visible={isPeriodModalVisible}
-				transparent
-				animationType="slide"
-				onRequestClose={() => setIsPeriodModalVisible(false)}
-			>
-				<View style={styles.modalOverlay}>
-					<View
-						style={[
-							styles.modalContent,
-							{ backgroundColor: theme.backgroundRoot },
-						]}
-					>
-						<View style={styles.modalHeader}>
-							<ThemedText type="label">{TEXT.forecast.selectPeriod}</ThemedText>
-							<Pressable
-								onPress={() => setIsPeriodModalVisible(false)}
-								style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
-							>
-								<Feather name="x" size={24} color={theme.text} />
-							</Pressable>
-						</View>
-						<FlatList
-							data={periodOptions}
-							keyExtractor={(item) => item}
-							renderItem={({ item }) => (
-								<Pressable
-									style={({ pressed }) => [
-										styles.periodOption,
-										{
-											backgroundColor:
-												item === selectedPeriod
-													? theme.backgroundSecondary
-													: "transparent",
-											opacity: pressed ? 0.7 : 1,
-										},
-									]}
-									onPress={() => handlePeriodSelect(item)}
-								>
-									<ThemedText type="body">{PERIOD_LABELS[item]}</ThemedText>
-									{item === selectedPeriod ? (
-										<Feather name="check" size={20} color={theme.primary} />
-									) : null}
-								</Pressable>
-							)}
-						/>
-					</View>
-				</View>
-			</Modal>
 		</ThemedView>
 	);
 }
@@ -415,40 +368,33 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	loadingContainer: {
-		flex: 1,
 		alignItems: "center",
 		justifyContent: "center",
+		paddingVertical: Spacing["5xl"],
+	},
+	periodSection: {
+		marginBottom: Spacing.xl,
+	},
+	periodOptions: {
+		flexDirection: "row",
+		gap: Spacing.sm,
+	},
+	periodChip: {
+		paddingHorizontal: Spacing.lg,
+		paddingVertical: Spacing.md,
+		borderRadius: BorderRadius.sm,
+		borderWidth: 1,
+	},
+	summaryRow: {
+		flexDirection: "row",
+		gap: Spacing.md,
+		paddingBottom: Spacing.xl,
 	},
 	scrollView: {
 		flex: 1,
 	},
 	content: {
 		paddingHorizontal: Spacing.xl,
-	},
-	periodRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		marginBottom: Spacing.lg,
-	},
-	periodButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		paddingHorizontal: Spacing.lg,
-		paddingVertical: Spacing.sm,
-		borderRadius: BorderRadius.sm,
-		gap: Spacing.xs,
-	},
-	summaryScroll: {
-		marginHorizontal: -Spacing.xl,
-		marginBottom: Spacing.xl,
-	},
-	summaryContainer: {
-		paddingHorizontal: Spacing.xl,
-		gap: Spacing.md,
-	},
-	sectionTitle: {
-		marginBottom: Spacing.lg,
 	},
 	emptyState: {
 		alignItems: "center",
@@ -462,31 +408,5 @@ const styles = StyleSheet.create({
 		paddingVertical: Spacing.md,
 		borderRadius: BorderRadius.sm,
 		marginTop: Spacing.xl,
-	},
-	modalOverlay: {
-		flex: 1,
-		backgroundColor: "rgba(0, 0, 0, 0)",
-		justifyContent: "flex-end",
-	},
-	modalContent: {
-		borderTopLeftRadius: BorderRadius.lg,
-		borderTopRightRadius: BorderRadius.lg,
-		maxHeight: "60%",
-		paddingBottom: Spacing["3xl"],
-	},
-	modalHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		padding: Spacing.xl,
-		borderBottomWidth: 1,
-		borderBottomColor: "rgba(128, 128, 128, 0.2)",
-	},
-	periodOption: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-		paddingHorizontal: Spacing.xl,
-		paddingVertical: Spacing.lg,
 	},
 });
