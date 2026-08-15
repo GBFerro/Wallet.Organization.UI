@@ -7,6 +7,7 @@ import {
 } from "@constants/api";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { formatCurrency, formatDate } from "@utils/format";
 import React, { createContext, useContext, useMemo } from "react";
@@ -179,7 +180,11 @@ function TransactionCardDetails({
 							{TRANSACTION_TYPE_LABELS[transaction.type]}
 						</ThemedText>
 					</View>
-					<ThemedText type="caption" style={{ color: theme.textSecondary }}>
+					<ThemedText
+						type="caption"
+						numberOfLines={1}
+						style={[styles.methodLabel, { color: theme.textSecondary }]}
+					>
 						{PAYMENT_METHOD_LABELS[transaction.payment.method]}
 					</ThemedText>
 				</View>
@@ -195,18 +200,23 @@ export interface TransactionCardAmountProps {
 function TransactionCardAmount({
 	style,
 }: Readonly<TransactionCardAmountProps>) {
-	const { transaction, amountColor, amountPrefix } =
+	const { transaction, amountColor, amountPrefix, theme } =
 		useTransactionCardContext();
 
 	return (
 		<View style={[styles.rightContent, style]}>
-			<ThemedText type="body" style={{ color: amountColor, fontWeight: "600" }}>
+			<ThemedText
+				type="body"
+				numberOfLines={1}
+				style={{ color: amountColor, fontWeight: "600" }}
+			>
 				{amountPrefix}
 				{formatCurrency(transaction.payment.amount)}
 			</ThemedText>
 			<ThemedText
 				type="caption"
-				style={{ color: useTransactionCardContext().theme.textSecondary }}
+				numberOfLines={1}
+				style={{ color: theme.textSecondary }}
 			>
 				{formatDate(transaction.date)}
 			</ThemedText>
@@ -226,6 +236,7 @@ function TransactionCardActions({
 	children,
 }: Readonly<TransactionCardActionsProps>) {
 	const { theme } = useTransactionCardContext();
+	const { pressed, pressHandlers } = usePressed();
 
 	if (children) {
 		return <View style={styles.actions}>{children}</View>;
@@ -235,10 +246,8 @@ function TransactionCardActions({
 		<View style={styles.actions}>
 			{onDelete && (
 				<Pressable
-					style={({ pressed }) => [
-						styles.actionButton,
-						{ opacity: pressed ? 0.5 : 1 },
-					]}
+					{...pressHandlers}
+					style={[styles.actionButton, { opacity: pressed ? 0.5 : 1 }]}
 					onPress={onDelete}
 				>
 					<Feather name="trash-2" size={18} color={theme.error} />
@@ -271,7 +280,11 @@ function TransactionCardMeta({ children }: Readonly<TransactionCardMetaProps>) {
 					{TRANSACTION_TYPE_LABELS[transaction.type]}
 				</ThemedText>
 			</View>
-			<ThemedText type="caption" style={{ color: theme.textSecondary }}>
+			<ThemedText
+				type="caption"
+				numberOfLines={1}
+				style={[styles.methodLabel, { color: theme.textSecondary }]}
+			>
 				{PAYMENT_METHOD_LABELS[transaction.payment.method]}
 			</ThemedText>
 		</View>
@@ -296,11 +309,13 @@ const styles = StyleSheet.create({
 	},
 	leftContent: {
 		flex: 1,
+		minWidth: 0,
 		flexDirection: "row",
 		alignItems: "center",
 		gap: Spacing.md,
 	},
 	iconContainer: {
+		flexShrink: 0,
 		width: 44,
 		height: 44,
 		borderRadius: 22,
@@ -309,19 +324,26 @@ const styles = StyleSheet.create({
 	},
 	details: {
 		flex: 1,
+		minWidth: 0,
 		gap: Spacing.xs,
 	},
 	metaRow: {
 		flexDirection: "row",
+		minWidth: 0,
 		alignItems: "center",
 		gap: Spacing.sm,
 	},
 	badge: {
+		flexShrink: 0,
 		paddingHorizontal: Spacing.sm,
 		paddingVertical: 2,
 		borderRadius: BorderRadius.xs,
 	},
+	methodLabel: {
+		flexShrink: 1,
+	},
 	rightContent: {
+		flexShrink: 0,
 		alignItems: "flex-end",
 		marginRight: Spacing.sm,
 	},
