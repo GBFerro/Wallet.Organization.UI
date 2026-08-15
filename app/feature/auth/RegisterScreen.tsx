@@ -4,6 +4,7 @@ import { TEXT } from "@constants/text";
 import { BorderRadius, Spacing } from "@constants/theme";
 import { useAuth } from "@contexts/AuthContext";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import React, { useState } from "react";
 import {
@@ -22,12 +23,16 @@ interface RegisterScreenProps {
 	onLogin: () => void;
 }
 
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_STRENGTH = [/[A-Z]/, /[a-z]/, /\d/];
+
 export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 	const { theme } = useTheme();
+	const registerPress = usePressed();
 	const { register } = useAuth();
 	const insets = useSafeAreaInsets();
 
-	const [name, setName] = useState("");
+	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,7 +42,7 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 
 	async function handleRegister() {
 		if (
-			!name.trim() ||
+			!username.trim() ||
 			!email.trim() ||
 			!password.trim() ||
 			!confirmPassword.trim()
@@ -51,18 +56,23 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 			return;
 		}
 
-		if (password.length < 6) {
+		if (password.length < PASSWORD_MIN_LENGTH) {
 			setError(TEXT.auth.errorPasswordLength);
+			return;
+		}
+
+		if (!PASSWORD_STRENGTH.every((rule) => rule.test(password))) {
+			setError(TEXT.auth.errorPasswordWeak);
 			return;
 		}
 
 		setIsLoading(true);
 		setError("");
 
-		const result = await register(name, email, password);
+		const result = await register(username, email, password);
 
-		if (!result.success) {
-			setError(result.message || TEXT.auth.errorRegister);
+		if (!result.isSuccess) {
+			setError(result.errors?.[0]?.message || TEXT.auth.errorRegister);
 		}
 
 		setIsLoading(false);
@@ -118,7 +128,7 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 
 						<View style={styles.inputGroup}>
 							<ThemedText type="caption" style={{ color: theme.textSecondary }}>
-								Nome
+								{TEXT.auth.usernameLabel}
 							</ThemedText>
 							<View
 								style={[
@@ -129,11 +139,12 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 								<Feather name="user" size={20} color={theme.textSecondary} />
 								<TextInput
 									style={[styles.input, { color: theme.text }]}
-									placeholder="Seu nome"
+									placeholder={TEXT.auth.usernamePlaceholder}
 									placeholderTextColor={theme.textSecondary}
-									value={name}
-									onChangeText={setName}
-									autoCapitalize="words"
+									value={username}
+									onChangeText={setUsername}
+									autoCapitalize="none"
+									autoCorrect={false}
 								/>
 							</View>
 						</View>
@@ -175,7 +186,7 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 								<Feather name="lock" size={20} color={theme.textSecondary} />
 								<TextInput
 									style={[styles.input, { color: theme.text }]}
-									placeholder="Minimo 6 caracteres"
+									placeholder={TEXT.auth.passwordHint}
 									placeholderTextColor={theme.textSecondary}
 									value={password}
 									onChangeText={setPassword}
@@ -214,11 +225,12 @@ export function RegisterScreen({ onLogin }: Readonly<RegisterScreenProps>) {
 						</View>
 
 						<Pressable
-							style={({ pressed }) => [
+							{...registerPress.pressHandlers}
+							style={[
 								styles.registerButton,
 								{
 									backgroundColor: theme.primary,
-									opacity: pressed || isLoading ? 0.8 : 1,
+									opacity: registerPress.pressed || isLoading ? 0.8 : 1,
 								},
 							]}
 							onPress={handleRegister}

@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/atoms/ThemedText";
 import { Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import React from "react";
 import { Pressable, StyleSheet, Switch, View } from "react-native";
@@ -29,6 +30,7 @@ export function SettingsItem({
 	onSwitchChange,
 }: Readonly<SettingsItemProps>) {
 	const { theme } = useTheme();
+	const { pressed, pressHandlers } = usePressed();
 
 	const renderElement = () => {
 		if (showSwitch) {
@@ -52,7 +54,8 @@ export function SettingsItem({
 
 	return (
 		<Pressable
-			style={({ pressed }) => [
+			{...pressHandlers}
+			style={[
 				styles.settingsItem,
 				{
 					backgroundColor: theme.backgroundDefault,

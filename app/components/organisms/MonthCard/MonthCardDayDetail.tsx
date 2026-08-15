@@ -1,5 +1,6 @@
 import { BorderRadius, Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { formatCurrency, formatDate } from "@utils/format";
 import React from "react";
@@ -73,6 +74,7 @@ function DetailSubRow({ icon, label, value }: Readonly<DetailSubRowProps>) {
 export function MonthCardDayDetail() {
 	const { selectedDay, setSelectedDay } = useMonthCardContext();
 	const { theme } = useTheme();
+	const { pressed, pressHandlers } = usePressed();
 
 	return (
 		<Modal
@@ -99,8 +101,9 @@ export function MonthCardDayDetail() {
 									{formatDate(selectedDay.date)}
 								</Text>
 								<Pressable
+									{...pressHandlers}
 									onPress={() => setSelectedDay(null)}
-									style={({ pressed }) => [{ opacity: pressed ? 0.5 : 1 }]}
+									style={{ opacity: pressed ? 0.5 : 1 }}
 								>
 									<Feather name="x" size={24} color={theme.text} />
 								</Pressable>
@@ -127,14 +130,14 @@ export function MonthCardDayDetail() {
 
 								<DetailSubRow
 									icon="credit-card"
-									label="Cartao"
-									value={formatCurrency(selectedDay.cardExpenses)}
+									label="Credito"
+									value={formatCurrency(selectedDay.creditCardExpenses)}
 								/>
 
 								<DetailSubRow
 									icon="smartphone"
-									label="Debito"
-									value={formatCurrency(selectedDay.debitExpenses)}
+									label="Debito/Pix/Dinheiro"
+									value={formatCurrency(selectedDay.cashEquivalentExpenses)}
 								/>
 
 								<DetailSubRow
@@ -148,15 +151,15 @@ export function MonthCardDayDetail() {
 								<DetailRow
 									icon="activity"
 									iconColor={
-										selectedDay.net >= 0 ? theme.income : theme.expense
+										selectedDay.netChange >= 0 ? theme.income : theme.expense
 									}
 									label="Saldo do Dia"
-									value={`${selectedDay.net >= 0 ? "+" : ""}${formatCurrency(selectedDay.net)}`}
+									value={`${selectedDay.netChange >= 0 ? "+" : ""}${formatCurrency(selectedDay.netChange)}`}
 									valueColor={
-										selectedDay.net >= 0 ? theme.income : theme.expense
+										selectedDay.netChange >= 0 ? theme.income : theme.expense
 									}
 									backgroundColor={
-										selectedDay.net >= 0
+										selectedDay.netChange >= 0
 											? theme.income + "15"
 											: theme.expense + "15"
 									}
@@ -166,9 +169,9 @@ export function MonthCardDayDetail() {
 									icon="dollar-sign"
 									iconColor={theme.primary}
 									label="Saldo Acumulado"
-									value={formatCurrency(selectedDay.currentAmount)}
+									value={formatCurrency(selectedDay.closingBalance)}
 									valueColor={
-										selectedDay.currentAmount >= 0
+										selectedDay.closingBalance >= 0
 											? theme.income
 											: theme.expense
 									}

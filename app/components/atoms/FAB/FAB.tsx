@@ -1,5 +1,6 @@
 import { Spacing } from "@constants/theme";
 import { Feather } from "@expo/vector-icons";
+import { usePressed } from "@hooks/usePressed";
 import { useTheme } from "@hooks/useTheme";
 import { cn } from "@utils/cn";
 import React from "react";
@@ -24,12 +25,14 @@ export function FAB({
 	...props
 }: Readonly<FABProps>) {
 	const { theme } = useTheme();
+	const { pressed, pressHandlers } = usePressed(props);
 
 	return (
 		<Pressable
 			{...props}
+			{...pressHandlers}
 			className={cn(className)}
-			style={({ pressed }) => [
+			style={[
 				styles.fab,
 				{
 					backgroundColor: theme.primary,
